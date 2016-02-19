@@ -1,7 +1,6 @@
 # Logs
-logs
 *.log
-npm-debug.log*
+/logs
 
 # Runtime data
 pids
@@ -24,10 +23,27 @@ coverage
 build/Release
 
 # Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 
-# Optional npm cache directory
-.npm
+.DS_Store
+design.txt
+readme
+notes
 
-# Optional REPL history
-.node_repl_history
+# don't sync Visual Studio files
+.ntvs_analysis.dat
+.ntvs_analysis.dat.tmp
+bin/
+obj/
+*.njsproj
+*.suo
+*.sln
+logs/*.log
+
+*.ldb
+*.dat
+/db
+/build
+
+/.vs/config/applicationhost.config

@@ -1,0 +1,20 @@
+﻿{
+    "node": {
+	    "account":  "seeedtest012345543210",
+        "address": "192.168.1.79",
+        "port": 32320,
+        "seeds": []
+    },
+    "log": {
+        "level": "debug"
+    },
+    "discoverysrvc": true,
+    "wsserver": false,
+	"private_network": false,
+    "private_network_accounts": [
+		{ "account": "seeedtest1234554321" },
+        { "account": "tzpardi", "publickey": "0242d26759ea80a9b26e3235fad2ee0027c5da5ea3d6121a4f74dbd787d4506484" },
+		{ "account": "tzpardi2", "publickey": "02818a50b56bbe02dd3366c58b96d6ce7c940efe63cf3df4149934f89d1330e4c3" },
+		{ "account": "zspardi", "publickey": "0282b84e93ff41d2a3b2f11a9c23366e9550fcf853adab1387d01bdb58e0fb4795" }
+    ]
+}
