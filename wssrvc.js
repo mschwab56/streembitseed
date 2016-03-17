@@ -143,6 +143,13 @@ WebSocketSrv.prototype.start = function (io) {
                     
                     logger.debug("ws put for key: " + request.key);
 
+                    // trye delete the message from the local storage if the message is a DELMSG type
+                    if (request.key.indexOf("delmsg") > -1) {
+                        global.streemo_node.delete_account_message(request, function (err) {
+                            logger.error("Deleting message failed. error: %j", err);
+                        });
+                    }
+
                     //
                 });
             }
@@ -189,6 +196,36 @@ WebSocketSrv.prototype.start = function (io) {
                 global.streemo_node.find(key, function (err, msg) {
                     callback(err, msg);
                 });
+            }
+            catch (err) {
+                logger.error(err);
+            }
+        });
+        
+        socket.on("get_account_messages", function (account, msgkey, callback) {
+            try {
+                if (!account) {
+                    return callback("invalid key parameter");
+                }
+                if (!msgkey) {
+                    return callback("invalid msgkey parameter");
+                }
+                
+                if (!global.streemo_node) {
+                    return callback("error: 0x0110, the node is not initialized");
+                }
+                
+                global.streemo_node.get_stored_messages(account, msgkey, function (err, count, msgs) {
+                    var reply = "";
+                    if (err) {
+                        reply = { error: err };
+                    }
+                    else {
+                        reply = { error: 0, count: count, messages: msgs };
+                    }
+                    callback(null, reply);
+                });
+
             }
             catch (err) {
                 logger.error(err);

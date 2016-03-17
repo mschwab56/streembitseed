@@ -64,7 +64,7 @@ async.waterfall([
         var logspath = path.join(wdir, 'logs');
         var logConfig = config.get('log');
         var loglevel = logConfig && logConfig.level ? logConfig.level : "debug";
-        logger.init(loglevel, logspath, callback);
+        logger.init(loglevel, logspath, null, callback);
     },      
     function (callback) {
         // create the db directory
