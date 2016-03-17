@@ -27,10 +27,10 @@ pm2.connect(function (err) {
             function (callback) {                
                 pm2.start({
                     name    : "streemo seed #1",
-                    script  : 'seed.js',         
-                    cwd     : "/home/zsoltp/apps/streemoseed",
+                    script  : 'streemio.js',         
+                    cwd     : "/home/zsoltp/apps/streemio-seed",
                     env: {
-                        "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemoseed/config"
+                        "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed/config"
                     }
                 }, 
                 function (err, apps) {
@@ -38,40 +38,42 @@ pm2.connect(function (err) {
                 });                
             },
             function (callback) {
-                setTimeout(
-                    function () {
-                        pm2.start({
-                            name    : "streemo seed #2",
-                            script  : 'seed.js',         
-                            cwd     : "/home/zsoltp/apps/seed2",
-                            env: {
-                                "NODE_CONFIG_DIR": "/home/zsoltp/apps/seed2/config"
-                            }
-                        }, 
-                        function (err, apps) {
-                            callback(err);
-                        });             
-                    },
-                    5000
-                );
+                //setTimeout(
+                //    function () {
+                //        pm2.start({
+                //            name    : "streemo seed #2",
+                //            script  : 'seed.js',         
+                //            cwd     : "/home/zsoltp/apps/seed2",
+                //            env: {
+                //                "NODE_CONFIG_DIR": "/home/zsoltp/apps/seed2/config"
+                //            }
+                //        }, 
+                //        function (err, apps) {
+                //            callback(err);
+                //        });             
+                //    },
+                //    5000
+                //);
+                callback();
             },
             function (callback) {
-                setTimeout(
-                    function () {
-                        pm2.start({
-                            name    : "streemo seed #3",
-                            script  : 'seed.js',         
-                            cwd     : "/home/zsoltp/apps/seed3",
-                            env: {
-                                "NODE_CONFIG_DIR": "/home/zsoltp/apps/seed3/config"
-                            }
-                        }, 
-                        function (err, apps) {
-                            callback(err);
-                        });
-                    },
-                    5000
-                );
+                //setTimeout(
+                //    function () {
+                //        pm2.start({
+                //            name    : "streemo seed #3",
+                //            script  : 'seed.js',         
+                //            cwd     : "/home/zsoltp/apps/seed3",
+                //            env: {
+                //                "NODE_CONFIG_DIR": "/home/zsoltp/apps/seed3/config"
+                //            }
+                //        }, 
+                //        function (err, apps) {
+                //            callback(err);
+                //        });
+                //    },
+                //    5000
+                //);
+                callback();
             }
         ], 
         function (err) {
