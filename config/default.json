@@ -1,7 +1,7 @@
 ﻿{
     "node": {
-        "account":  "seeedtest012345543210",
-        "address": "192.168.1.79",
+        "account":  "seed01",
+        "address": "localhost",
         "port": 32320,
         "seeds": []
     },
