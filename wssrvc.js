@@ -164,12 +164,12 @@ WebSocketSrv.prototype.start = function (io) {
                 if (contact) {
                     var recipient = contact.name;
                     if (recipient) {
-                        logger.debug("ws peermsg from socket.id: " + socket.id);
+                        //logger.debug("ws peermsg from socket.id: " + socket.id);
                         var contactobj = self.listOfClients.get(recipient);
                         if (contactobj && contactobj.socket) {
-                            contactobj.socket.emit("peermsg", request);
+                            contactobj.socket.emit("peermsg", request);                            
                             callback();
-                            logger.debug("ws peermsg sent to: " + recipient);
+                            //logger.debug("ws peermsg sent to: " + recipient);
                         }
                         else {
                             //  do nothing, wait until the contact will try to find this account

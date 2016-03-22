@@ -1,9 +1,20 @@
 ﻿{
     "node": {
-        "account":  "seed01",
+        "account":  "seed99",
         "address": "localhost",
         "port": 32320,
-        "seeds": []
+        "seeds": [
+            {
+                "account": "seed02",
+                "address": "seed.streemio.net",
+                "port": 32320
+            },
+            {
+                "account": "seed01",
+                "address": "seed.streemio.org",
+                "port": 32320
+            }
+        ]
     },
     "log": {
         "level": "debug"

@@ -293,7 +293,7 @@ streemo.PeerNet = (function (thisobj, logger, events) {
                 };
                 
                 var peernode = wotkad(options);
-                peernode.create(function (err, value) {
+                peernode.create(function (err) {
                     if (err) {
                         return logger.error("Create peer error %j", err);
                     }
@@ -307,16 +307,7 @@ streemo.PeerNet = (function (thisobj, logger, events) {
                     nodeProxy();
                 });
                 
-                peernode.on('connect', function (err, value) {
-                    if (err) {
-                        return logger.error("peer connect error %j", err);
-                    }
-                    // no error, add to the list
-                    if (onConnected) {
-                        onConnected(value);
-                    }
-                });
-                
+
                 peernode.on('msgstored', function msg_stored(node_id, item) {
                     if (item && item.key && item.hash) {
                         logger.debug("peernet msg_stored, node_id: " + node_id + ", item.key: " + item.key);
