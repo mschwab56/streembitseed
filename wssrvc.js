@@ -11,66 +11,50 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 */
-
+var net = require('net');
 var logger = require('streemio/libs/logger/logger');
-var HashMap = require('hashmap');
 var http = require('http');
 var appevents = require('streemio/libs/events/AppEvents');
 var wotmsg = require('streemio/libs/message/wotmsg');
 
+
+function ClientList() {
+    
+    var clients = {};
+
+    var obj = {
+
+        get: function (account) {
+            return clients[account];
+        },
+
+        set: function (account, data) {
+            clients[account] = data;
+        },
+
+        remove: function (socketid) {
+            for (account in clients) {
+                var data = clients[account];
+                if (socketid == data.socketid) {
+                    delete clients[account];
+                }
+            }            
+        }
+
+    };
+
+    return obj;       
+}
+
 var WebSocketSrv = exports.WebSocketSrv = function () {
     try {
         this.server = 0;
-        this.listOfClients = new HashMap();
+        this.listOfClients = new ClientList();
     }
     catch (e) {
         logger.error(e);
     }
 };
-
-WebSocketSrv.prototype.onPeerMessage = function (recipient, data) {
-    try {
-        
-        var msgarray = wotmsg.get_msg_array(data);
-        if (!msgarray || !msgarray.length || msgarray.length != 3)
-            throw new Error("invalid message");
-        
-        var header = msgarray[0];
-        var payload = msgarray[1];
-        if (!payload || !payload.aud)
-            throw new Error("invalid aud element");
-        
-        // get the account from the list
-        var client = this.listOfClients.get(payload.aud);
-        if (!client) {
-            // TODO
-            return;
-        }
-        
-        var sender = payload.iss;
-        if (!sender)
-            throw new Error("invalid sender element");
-        
-        //  get the public key for the sender only contacts are 
-        //  allowed communicate with eachother via peer to peer
-        var public_key = client.publickey;
-        if (!public_key) {
-            throw new Error("peer message sender '" + sender + "' is not a contact");
-        }
-        
-        var message = wotmsg.decode(data, public_key);
-        if (!message || !message.data)
-            throw new Error("invalid JWT message");
-        
-        // forward the message to the recipient contact
-        var socket = client.socket;
-        
-    }
-    catch (err) {
-        logger.error("onPeerMessage error %j", err);
-    }
-}
-
 
 WebSocketSrv.prototype.find_contact = function (contact, callback) {
     try {
@@ -160,23 +144,28 @@ WebSocketSrv.prototype.start = function (io) {
         
         socket.on("peermsg", function (request, callback) {
             try {
-                var contact = request.contact;
-                if (contact) {
-                    var recipient = contact.name;
-                    if (recipient) {
-                        //logger.debug("ws peermsg from socket.id: " + socket.id);
-                        var contactobj = self.listOfClients.get(recipient);
-                        if (contactobj && contactobj.socket) {
-                            contactobj.socket.emit("peermsg", request);                            
-                            callback();
-                            //logger.debug("ws peermsg sent to: " + recipient);
-                        }
-                        else {
-                            //  do nothing, wait until the contact will try to find this account
-                            callback("ws peermsg contact: " + recipient + " is not connected to web socket, message is not routed");
-                        }
-                    }
+                if (!request || !request.message || !request.contact || !request.contact.name) {
+                    return callback("Invalid peermsg request parameters");
                 }
+
+                var contact = request.contact;
+                if (contact.protocol == "tcp") {
+                    self.send_tcp_request(request, function (err) {
+                        callback(err);
+                    });
+                }
+                else {         
+                    //logger.debug("ws peermsg from socket.id: " + socket.id);
+                    var contactobj = self.listOfClients.get(contact.name);
+                    if (contactobj && contactobj.socket) {
+                        contactobj.socket.emit("peermsg", request);
+                        callback();
+                    }
+                    else {
+                        //  Route the message to the contact TCP 
+                        callback("Error: 0x0110. Contact " + contact.name + " is not connected to web socket, message is not routed");                   
+                    }
+                }      
             }
             catch (err) {
                 logger.error(err);
@@ -234,22 +223,12 @@ WebSocketSrv.prototype.start = function (io) {
         
         socket.on("disconnect", function () {
             try {
-                var account;
-                self.listOfClients.forEach(function (value, key) {
-                    if (socket.id == value.socketid) {
-                        account = key;
-                    }
-                });
-                if (account) {
-                    self.listOfClients.remove(account);
-                }
+                self.listOfClients.remove(socket.id);
             }
             catch (err) {
-                logger.error(err);
+                logger.error("ws socket disconnect: %j", err);
             }
         });
-
-
     });
     
     logger.info("websocketsrv app srv initialized");
@@ -278,6 +257,27 @@ WebSocketSrv.prototype.init = function () {
     }
 };
 
+
+WebSocketSrv.prototype.send_tcp_request = function (request, callback) {
+    try {
+        var contact = request.contact;
+        var port = contact.port, address = contact.address;
+
+        var sock = net.createConnection(port, address);
+        
+        sock.on('error', function (err) {
+            logger.error('send_tcp_request send error: %j', err);
+        });
+        
+        var message = request.message;
+        sock.end(message);
+        callback();
+    }
+    catch (err) {
+        callback(err);
+        logger.error('send_tcp_request error: %j', err);
+    }
+};
 
 
 

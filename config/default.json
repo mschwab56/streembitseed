@@ -1,27 +1,15 @@
 ﻿{
     "node": {
-        "account":  "seed99",
-        "address": "localhost",
+        "account": "seed1",
+        "address": "192.168.1.79",
         "port": 32320,
-        "seeds": [
-            {
-                "account": "seed02",
-                "address": "seed.streemio.net",
-                "port": 32320
-            },
-            {
-                "account": "seed01",
-                "address": "seed.streemio.org",
-                "port": 32320
-            }
-        ]
+        "seeds": []
     },
     "log": {
         "level": "debug"
     },
     "discoverysrvc": true,
-    "wsserver": false,
+    "wsserver": true,
     "private_network": false,
     "private_network_accounts": []
 }
-
