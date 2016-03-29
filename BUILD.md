@@ -8,7 +8,7 @@ Run Streemio from source
 ------------------------
 
 ```bash
-$ git clone https://github.com/streemio-org/streemiolib
+$ git clone https://github.com/streemio-org/streemio-seed
 $ cd /streemio-seed
 ```
 
