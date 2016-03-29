@@ -1,2 +1,3 @@
 # streemio-seed
-Streemio seed application to run a seed node on the Streemio network
+
+streemio-seed is the console version of the Streemio Core software. The streemio-seed application runs a seed node for the Streemio network.

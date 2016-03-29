@@ -1,14 +1,21 @@
 ﻿/*
  
-Streemo - Real time communication system for humans and machines
+This file is part of Streemio application. 
+Streemio is an open source project to create a real time communication system for humans and machines. 
 
-Copyright (C) 2016 T. Z. Pardi
+Streemio is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
 
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as 
-published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+Streemio is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with Streemio software.  
+If not, see http://www.gnu.org/licenses/.
+ 
+-------------------------------------------------------------------------------------------------------------------------
+Author: Tibor Zsolt Pardi 
+Copyright (C) 2016 The Streemio software development team
+-------------------------------------------------------------------------------------------------------------------------
 
 */
 
@@ -23,11 +30,11 @@ global.cryptolib = "crypto";
 
 global.streemo_node = 0;
 
-var logger = require("streemio/libs/logger/logger");
+var logger = require("streemiolib/logger/logger");
 global.applogger = logger;
 
 if (!global.appevents) {
-    var AppEvents = require("streemio/libs/events/AppEvents");
+    var AppEvents = require("streemiolib/events/AppEvents");
     global.appevents = new AppEvents();
 }
 
@@ -40,7 +47,7 @@ var async = require('async');
 var util = require('util');
 var assert = require('assert');
 var config = require('config');
-var wotkad = require('streemio/libs/wotkad/kaddht');
+var wotkad = require('streemiolib/streemiokad/kaddht');
 var discoverysrvc = require('./discoverysrvc');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
 

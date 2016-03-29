@@ -1,14 +1,21 @@
 ﻿/*
  
-Streemo - Real time communication system for humans and machines
+This file is part of Streemio application. 
+Streemio is an open source project to create a real time communication system for humans and machines. 
 
-Copyright (C) 2016 T. Z. Pardi
+Streemio is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
 
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as 
-published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+Streemio is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with Streemio software.  
+If not, see http://www.gnu.org/licenses/.
+ 
+-------------------------------------------------------------------------------------------------------------------------
+Author: Tibor Zsolt Pardi 
+Copyright (C) 2016 The Streemio software development team
+-------------------------------------------------------------------------------------------------------------------------
 
 */
 
@@ -21,62 +28,19 @@ pm2.connect(function (err) {
         console.error(err);
         process.exit(2);
     }
-
-    async.waterfall(
-        [
-            function (callback) {                
-                pm2.start({
-                    name    : "streemio seed #1",
-                    script  : 'streemio.js',         
-                    cwd     : "/home/zsoltp/apps/streemio-seed",
-                    env: {
-                        "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed/config"
-                    }
-                }, 
-                function (err, apps) {
-                    callback(err);
-                });                
-            },
-            function (callback) {
-                //setTimeout(
-                //    function () {
-                //        pm2.start({
-                //            name    : "streemio seed #2",
-                //            script  : 'streemio.js',         
-                //            cwd     : "/home/zsoltp/apps/seed2",
-                //            env: {
-                //                "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed2/config"
-                //            }
-                //        }, 
-                //        function (err, apps) {
-                //            callback(err);
-                //        });             
-                //    },
-                //    5000
-                //);
-                callback();
-            },
-            function (callback) {
-                //setTimeout(
-                //    function () {
-                //        pm2.start({
-                //            name    : "streemio seed #3",
-                //            script  : 'streemio.js',         
-                //            cwd     : "/home/zsoltp/apps/seed3",
-                //            env: {
-                //                "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed3/config"
-                //            }
-                //        }, 
-                //        function (err, apps) {
-                //            callback(err);
-                //        });
-                //    },
-                //    5000
-                //);
-                callback();
-            }
-        ], 
-        function (err) {
+    
+    var pm2config = {
+        name    : "streemio",
+        script  : 'streemio.js',         
+        cwd     : "/home/zsoltp/apps/streemio-seed",
+        env: {
+            "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed/config"
+        }
+    };
+    
+    pm2.start(
+        pm2config, 
+        function (err, apps) {
             if (err) {
                 return console.log("pm2.start error: %j", err);
             }
@@ -84,6 +48,6 @@ pm2.connect(function (err) {
             console.log("pm2.start complete");
             process.exit(0);      
         }
-    );
+    );    
     
 });
