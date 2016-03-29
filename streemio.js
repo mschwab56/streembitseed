@@ -236,37 +236,7 @@ streemo.PeerNet = (function (thisobj, logger, events) {
     
     function msg_stored(node_id, item) {
         //  NOT IMPLEMENTED
-    }
-    
-    function put(key, value) {
-        try {
-            thisobj.node.put(key, value, function (err) {
-                if (err) {
-                    logger.error("node.put error: %j", err);
-                }
-            });
-        }
-        catch (e) {
-            logger.error("node.put error: %j", e);
-        }
-    }
-    
-    function nodeProxy() {
-        var isws = config.get('wsserver');
-        if (!isws) { return; }
-
-        global.appevents.on(global.appevents.TYPES.ONPEERMSG, function (data) {
-            if (!thisobj.node) { return; }
-            
-            if (data.action) {
-                if (data.action == "put") {
-                    var key = data.key;
-                    var value = data.value;
-                    put(key, value);
-                }
-            }
-        });
-    }
+    }    
 
     thisobj.start = function (node, streemodb, onConnected) {
         try {
@@ -303,8 +273,6 @@ streemo.PeerNet = (function (thisobj, logger, events) {
                     thisobj.node = peernode;
                     global.streemo_node = thisobj.node;
                     
-                    // start the websocket listener
-                    nodeProxy();
                 });
                 
 

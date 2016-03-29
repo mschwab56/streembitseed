@@ -113,7 +113,8 @@ WebSocketSrv.prototype.start = function (io) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
-                global.streemo_node.put(request.key, request.value, function (err) {
+                // true == store locally as well
+                global.streemo_node.put(request.key, request.value, true, function (err) {
                     if (err) {
                         logger.error("node.put error: %j", err);
                         return callback(err);
