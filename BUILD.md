@@ -21,7 +21,9 @@ $ npm install
 
 Set the config/default.json configuration file.
 
-The account name must be unique on the network. If the account name is not defined the application will use the address:port hash (SHA1) for account name.
+The account name must be unique on the network. Please change the default "your_account_name" value otherwise the software won't be able to connect to the network. If the account name is not defined the application will use the address:port hash (SHA1) for account name.
+
+address: enter the IP address of the server in which the streemio-seed application is executed. 
 
 Seeds: array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemio.co.
 
@@ -78,8 +80,10 @@ $ node streemio.js
 
 
 Alternatively, start streemio-seed as a background/service process using the pm2 library.
-Edit the pm2start.js file to set the correct home directory. Change the pm2start.js at line 35 and line 37, you must define at these lines the work directory of streemio-seed.
+
+You must pass the working directory of streemio-seed to the pm2 application via the command line arguments. The command line argument is "-homedir", the directory name must follow this argument identifier.
+
 ```bash
-$ node pm2start.js
+$ node pm2start.js -- -homedir /to/path/sreemio-seed
 ```
 (For more information about pm2 please refer to the pm2 library)

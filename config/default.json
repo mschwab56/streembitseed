@@ -1,9 +1,28 @@
 ﻿{
     "node": {
-        "account": "seed1",
-        "address": "192.168.1.79",
+        "account": "your_account_name",
+        "address": "your_server_ip_address",
         "port": 32320,
-        "seeds": []
+        "seeds": [{
+            "account": "seed.streemio.org",
+            "address": "seed.streemio.org",
+            "port": 32320
+        },
+        {
+            "account": "seed.streemio.net",
+            "address": "seed.streemio.net",
+            "port": 32320
+        },            
+        {
+            "account": "seed.streemio.biz",
+            "address": "seed.streemio.biz",
+            "port": 32320
+        },
+        {
+            "account": "seed.streemio.co",
+            "address": "seed.streemio.co",
+            "port": 32320
+        }]
     },
     "log": {
         "level": "debug"
