@@ -19,7 +19,7 @@ completely stable. [Tags](https://github.com/streemio-org/streemio-seed/tags) ar
 regularly to indicate new official, stable release versions of Streemio Core.
 
 
-The codebase is maintained using the ìcontributor workflowî where everyone without exception contributes patch proposals using ìpull requestsî. This facilitates social contribution, easy testing and peer review.
+The codebase is maintained using the ‚Äúcontributor workflow‚Äù where everyone without exception contributes patch proposals using ‚Äúpull requests‚Äù. This facilitates social contribution, easy testing and peer review.
 
 To contribute a patch, the workflow is as follows:
 
@@ -74,7 +74,7 @@ There are three categories of refactoring, code only moves, code style fixes, co
 Project maintainers aim for a quick turnaround on refactoring pull requests, so where possible keep them short, uncomplex and easy to verify. 
 
 
-"Decision Making" Process
+Decision Making Process
 -------------------------
 
 The following applies to code changes to the Streemio project and related projects such as streemio-seed.
