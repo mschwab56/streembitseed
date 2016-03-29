@@ -18,16 +18,26 @@ Install the Node.js dependencies:
 $ npm install
 ```
 
+
 Set the config/default.json configuration file.
+
 The account name must be unique on the network. If the account name is not defined the application will use the address:port hash (SHA1) for account name.
+
 Seeds: array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemio.co.
+
+discoverysrvc: implements the discovery service. The discovery service has an important role in the Streemio network to assist in propogating information about the nodes.
+
 Log settings: define the level of log.
+
 wsserver: whether start a WebSocket listener or not. WebSocket listener serves Streemio clients which unable to open a TCP port and use the WebSocket fallback.
+
+Private network: please refer to the private network documention for more information about the Streemio private networks.
+
 ```json
 {
     "node": {
-        "account": "seed1",
-        "address": "192.168.1.79",
+        "account": "your_account_name",
+        "address": "your_server_ip_address",
         "port": 32320,
         "seeds": [
 		{
@@ -66,8 +76,9 @@ Run streemio-seed:
 $ node streemio.js
 ```
 
+
 Alternatively, start streemio-seed as a background/service process using the pm2 library.
-Edit the pm2start.js file to set the correct home directory. Change the pm2start.js at line 35 and line 37, you must define the work directory of streemio-seed.
+Edit the pm2start.js file to set the correct home directory. Change the pm2start.js at line 35 and line 37, you must define at these lines the work directory of streemio-seed.
 ```bash
 $ node pm2start.js
 ```

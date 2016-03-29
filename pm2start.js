@@ -23,18 +23,40 @@ Copyright (C) 2016 The Streemio software development team
 var async = require("async");
 var pm2 = require('pm2');
 
+var homedir;
+
+try {
+    if (process.argv.indexOf("-homedir") != -1) {
+        homedir = process.argv[process.argv.indexOf("-homedir") + 1]; //grab the next item
+    }
+}
+catch (err) {
+    console.log("argument parse error: %j", err);
+}
+
+if (!homedir) {
+    //  try to get the current directory
+    console.log("setting home dir to current directory");
+    homedir = require('path').dirname(__filename);
+}
+
+console.log("homedir: %s", homedir);
+
 pm2.connect(function (err) {
     if (err) {
         console.error(err);
         process.exit(2);
     }
     
+    var cwd_value = homedir;
+    var node_config_dir_value = homedir + "/config";
+    
     var pm2config = {
         name    : "streemio",
         script  : 'streemio.js',         
-        cwd     : "/home/zsoltp/apps/streemio-seed",
+        cwd     : cwd_value,
         env: {
-            "NODE_CONFIG_DIR": "/home/zsoltp/apps/streemio-seed/config"
+            "NODE_CONFIG_DIR": node_config_dir_value
         }
     };
     
