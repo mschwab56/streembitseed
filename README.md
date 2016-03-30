@@ -15,7 +15,7 @@ Run Streemio from source
 
 ```bash
 $ git clone https://github.com/streemio-org/streemio-seed
-$ cd /streemio-seed
+$ cd streemio-seed
 ```
 
 Install the Node.js dependencies:  
