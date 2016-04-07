@@ -1,20 +1,20 @@
 ﻿/*
  
-This file is part of Streemio application. 
-Streemio is an open source project to create a real time communication system for humans and machines. 
+This file is part of Streembit application. 
+Streembit is an open source project to create a real time communication system for humans and machines. 
 
-Streemio is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+Streembit is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
 
-Streemio is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+Streembit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with Streemio software.  
+You should have received a copy of the GNU General Public License along with Streembit software.  
 If not, see http://www.gnu.org/licenses/.
  
 -------------------------------------------------------------------------------------------------------------------------
 Author: Tibor Zsolt Pardi 
-Copyright (C) 2016 The Streemio software development team
+Copyright (C) 2016 The Streembit software development team
 -------------------------------------------------------------------------------------------------------------------------
 
 */
@@ -23,18 +23,18 @@ Copyright (C) 2016 The Streemio software development team
 
 var streemo = streemo || {};
 
-var DEFAULT_STREEMIO_PORT = 32320;
+var DEFAULT_STREEMBIT_PORT = 32320;
 
 // use the nodejs crypto library
 global.cryptolib = "crypto";
 
 global.streemo_node = 0;
 
-var logger = require("streemiolib/logger/logger");
+var logger = require("streembitlib/logger/logger");
 global.applogger = logger;
 
 if (!global.appevents) {
-    var AppEvents = require("streemiolib/events/AppEvents");
+    var AppEvents = require("streembitlib/events/AppEvents");
     global.appevents = new AppEvents();
 }
 
@@ -47,7 +47,7 @@ var async = require('async');
 var util = require('util');
 var assert = require('assert');
 var config = require('config');
-var wotkad = require('streemiolib/streemiokad/kaddht');
+var wotkad = require('streembitlib/streembitkad/kaddht');
 var discoverysrvc = require('./discoverysrvc');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
 
@@ -157,7 +157,7 @@ async.waterfall([
         
         for (var i = 0; i < configarg.seeds.length; i++) {
             if (!configarg.seeds[i].port) {
-                configarg.seeds[i].port = DEFAULT_STREEMIO_PORT;
+                configarg.seeds[i].port = DEFAULT_STREEMBIT_PORT;
             }
 
             if (is_private_network) {

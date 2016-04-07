@@ -1,21 +1,21 @@
-# streemio-seed
+# streembitseed
 
-streemio-seed is the console version of the Streemio Core software. The streemio-seed application runs a seed node for the Streemio network.
+streembitseed is the console version of the Streembit Core software. The streembitseed application runs a seed node for the Streembit network.
 
-streemio-seed is a wrapper to use the streemiolib project at https://github.com/streemio-org/streemiolib (see package.json for dependency information)
+streembitseed is a wrapper to use the streembitlib project at https://github.com/streembit/streembitlib (see package.json for dependency information)
 
 
-Building and running streemio-seed
+Building and running streembitseed
 ----------------------------------
 
-The streemio-seed software is a Node.js application. 
+The streembitseed software is a Node.js application. 
 
-Run Streemio from source 
+Run Streembit from source 
 ------------------------
 
 ```bash
-$ git clone https://github.com/streemio-org/streemio-seed
-$ cd streemio-seed
+$ git clone https://github.com/streembit/streembitseed
+$ cd streembitseed
 ```
 
 Install the Node.js dependencies:  
@@ -29,17 +29,17 @@ Set the config/default.json configuration file.
 
 The account name must be unique on the network. Please change the default "your_account_name" value otherwise the software won't be able to connect to the network. If the account name is not defined the application will use the address:port hash (SHA1) for account name.
 
-address: enter the IP address of the server in which the streemio-seed application is executed. 
+address: enter the IP address of the server in which the streembitseed application is executed. 
 
 Seeds: array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemio.co.
 
-discoverysrvc: implements the discovery service. The discovery service has an important role in the Streemio network to assist in propogating information about the nodes.
+discoverysrvc: implements the discovery service. The discovery service has an important role in the Streembit network to assist in propogating information about the nodes.
 
 Log settings: define the level of log.
 
-wsserver: whether start a WebSocket listener or not. WebSocket listener serves Streemio clients which unable to open a TCP port and use the WebSocket fallback.
+wsserver: whether start a WebSocket listener or not. WebSocket listener serves Streembit clients which unable to open a TCP port and use the WebSocket fallback.
 
-Private network: please refer to the private network documention for more information about the Streemio private networks.
+Private network: please refer to the private network documention for more information about the Streembit private networks.
 
 ```json
 {
@@ -79,15 +79,15 @@ Private network: please refer to the private network documention for more inform
 }
 ```
 
-Run streemio-seed:  
+Run streembitseed:  
 ```bash
-$ node streemio.js
+$ node streembit.js
 ```
 
 
-Alternatively, start streemio-seed as a background/service process using the pm2 library.
+Alternatively, start streembitseed as a background/service process using the pm2 library.
 
-You must pass the working directory of streemio-seed to the pm2 application via the command line arguments. The command line argument is "-homedir", the directory name must follow this argument identifier.
+You must pass the working directory of streembitseed to the pm2 application via the command line arguments. The command line argument is "-homedir", the directory name must follow this argument identifier.
 
 ```bash
 $ node pm2start.js -- -homedir /to/path/sreemio-seed
@@ -100,8 +100,8 @@ Development Process
 -------------------
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/streemio-org/streemio-seed/tags) are created
-regularly to indicate new official, stable release versions of Streemio Core.
+completely stable. [Tags](https://github.com/streembit/streembitseed/tags) are created
+regularly to indicate new official, stable release versions of Streembit Core.
 
 
 The codebase is maintained using the “contributor workflow” where everyone without exception contributes patch proposals using “pull requests”. This facilitates social contribution, easy testing and peer review.
@@ -162,9 +162,9 @@ Project maintainers aim for a quick turnaround on refactoring pull requests, so 
 Decision Making Process
 -------------------------
 
-The following applies to code changes to the Streemio project and related projects such as streemio-seed.
+The following applies to code changes to the Streembit project and related projects such as streembitseed.
 
-Whether a pull request is merged into Streemio rests with the project merge maintainers and ultimately the project lead. 
+Whether a pull request is merged into Streembit rests with the project merge maintainers and ultimately the project lead. 
 
 Maintainers will take into consideration if a patch is in line with the general principles of the project; meets the minimum standards for inclusion; and will judge the general consensus of contributors.
 
@@ -177,7 +177,7 @@ In general, all pull requests must:
   - not break the existing test suite;
   - where bugs are fixed, where possible, there should be unit tests demonstrating the bug and also proving the fix. This helps prevent regression.
 
-Patches that change Streemio consensus rules are considerably more involved than normal because they affect the entire ecosystem and so must be preceded by extensive mailing list discussions and have a numbered BIP. While each case will be different, one should be prepared to expend more time and effort than for other kinds of patches because of increased peer review and consensus building requirements.
+Patches that change Streembit consensus rules are considerably more involved than normal because they affect the entire ecosystem and so must be preceded by extensive mailing list discussions and have a numbered BIP. While each case will be different, one should be prepared to expend more time and effort than for other kinds of patches because of increased peer review and consensus building requirements.
 
 
 ###Peer Review
@@ -200,10 +200,10 @@ Where a patch set affects consensus critical code, the bar will be set much high
 Release Policy
 --------------
 
-The project leader is the release manager for each Streemio release.
+The project leader is the release manager for each Streembit release.
 
 
-The developer [forum](https://gitter.im/streemio/Streemio)
+The developer [forum](https://gitter.im/streembit/Streembit)
 should be used to discuss complicated or controversial changes before working
 on a patch set.
 

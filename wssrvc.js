@@ -1,29 +1,29 @@
 ﻿/*
  
-This file is part of Streemio application. 
-Streemio is an open source project to create a real time communication system for humans and machines. 
+This file is part of Streembit application. 
+Streembit is an open source project to create a real time communication system for humans and machines. 
 
-Streemio is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+Streembit is a free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
 
-Streemio is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+Streembit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with Streemio software.  
+You should have received a copy of the GNU General Public License along with Streembit software.  
 If not, see http://www.gnu.org/licenses/.
  
 -------------------------------------------------------------------------------------------------------------------------
 Author: Tibor Zsolt Pardi 
-Copyright (C) 2016 The Streemio software development team
+Copyright (C) 2016 The Streembit software development team
 -------------------------------------------------------------------------------------------------------------------------
 
 
 */
 var net = require('net');
-var logger = require('streemiolib/logger/logger');
+var logger = require('streembitlib/logger/logger');
 var http = require('http');
-var appevents = require('streemiolib/events/AppEvents');
-var wotmsg = require('streemiolib/message/wotmsg');
+var appevents = require('streembitlib/events/AppEvents');
+var wotmsg = require('streembitlib/message/wotmsg');
 
 
 function ClientList() {
