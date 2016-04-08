@@ -21,8 +21,27 @@ Copyright (C) 2016 The Streembit software development team
 
 var config = require('config');
 var restify = require('restify');
+var util = require('util');
 
 var logger = global.applogger;
+
+var MAX_DISCOVERY_SEEDS = 10;
+
+var max_seeds = MAX_DISCOVERY_SEEDS;
+
+if (config.has('max_discovery_seeds')) {
+    try {
+        max_seeds = parseInt(config.get('max_discovery_seeds'));
+        if (!max_seeds) {
+            max_seeds = MAX_DISCOVERY_SEEDS;
+        }
+    }
+    catch (errp) {
+        max_seeds = MAX_DISCOVERY_SEEDS;
+    }
+}
+
+logger.debug('max_seeds: ' + max_seeds);
 
 function completeRequest(err, data, res, next) {
     try {
@@ -42,8 +61,6 @@ function completeRequest(err, data, res, next) {
         return next();
     }
 }
-
-
 
 var server = restify.createServer();
 server
@@ -68,14 +85,35 @@ server.post('/seeds', function create(req, res, next) {
                     private_accounts_data = config.get('private_network_accounts');
                 }
             }
-        }        
+        }       
         
         // get the contact list from the Kademlia bucket
         seeds_data = global.streemo_node.get_contacts();
+        var seeds = [];
             
         if (!error) {
+            if (util.isArray(seeds_data)) {
+                //logger.debug("seeds_data isArray. length: " + seeds_data.length);
+                //logger.debug("seeds_data %j: ", seeds_data);
+                for (var i = 0; i < seeds_data.length; i++) {
+                    var exists = false;
+                    for (var j = 0; j < seeds.length; j++) {
+                        if (seeds[j].account == seeds_data[i].account && seeds[j].address == seeds_data[i].address) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        seeds.push(seeds_data[i]);
+                    }
+                    if (seeds.length >= max_seeds) {
+                        break;
+                    }
+                }
+            }
+
             data = {
-                seeds: seeds_data,
+                seeds: seeds,
                 isprivate_network: isprivate_network,
                 private_accounts: private_accounts_data
             };

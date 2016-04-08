@@ -90,7 +90,7 @@ Alternatively, start streembitseed as a background/service process using the pm2
 You must pass the working directory of streembitseed to the pm2 application via the command line arguments. The command line argument is "-homedir", the directory name must follow this argument identifier.
 
 ```bash
-$ node pm2start.js -- -homedir /to/path/sreemio-seed
+$ node pm2start.js -- -homedir /to/path/sreembitseed
 ```
 (For more information about pm2 please refer to the pm2 library)
 
