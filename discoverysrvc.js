@@ -19,9 +19,9 @@ Copyright (C) 2016 The Streembit software development team
 
 */
 
-var config = require('config');
-var restify = require('restify');
+var config = require('./config.json');
 var util = require('util');
+var http = require('http');
 
 var logger = global.applogger;
 
@@ -29,9 +29,9 @@ var MAX_DISCOVERY_SEEDS = 10;
 
 var max_seeds = MAX_DISCOVERY_SEEDS;
 
-if (config.has('max_discovery_seeds')) {
+if (config.max_discovery_seeds) {
     try {
-        max_seeds = parseInt(config.get('max_discovery_seeds'));
+        max_seeds = parseInt(config.max_discovery_seeds);
         if (!max_seeds) {
             max_seeds = MAX_DISCOVERY_SEEDS;
         }
@@ -43,54 +43,59 @@ if (config.has('max_discovery_seeds')) {
 
 logger.debug('max_seeds: ' + max_seeds);
 
-function completeRequest(err, data, res, next) {
+
+function completeRequest(err, data, res) {
     try {
         if (err) {
-            res.send(200, { error: err });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(JSON.stringify({ error: err }));
         }
         else if (!data) {
-            res.send(200, { error: 'no data is available' });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(JSON.stringify({ error: 'no data is available' }));
         }
         else {
-            res.send(200, { result: data });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(JSON.stringify({ result: data }));
         }
-        return next();
     }
     catch (e) {
-        res.send(200, { error: e.message });
-        return next();
+        try {
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(JSON.stringify({ error: e.message }));
+        }
+        catch (er2) { }
     }
 }
 
-var server = restify.createServer();
-server
-  .use(restify.fullResponse())
-  .use(restify.bodyParser());
-
-
-server.post('/seeds', function create(req, res, next) {
+function handle_request(request, response) {
+    
     try {
         //  return the known seeds of the network
         var error = null;
         var seeds_data = null, isprivate_network = false, private_accounts_data = [], data = null;
         
-        if (!global.streemo_node) {
+        if (!request.url || request.url != "/seeds") {
+            throw new Error("invalid request uri")
+        }
+        
+        if (!global.streembit_node) {
             throw new Error("discovery service Streembit node is not initialized");
         }
         
-        if (config.has('private_network')) {
-            isprivate_network = config.get('private_network');
+        if (config.private_network) {
+            isprivate_network = config.private_network;
             if (isprivate_network) {
-                if (config.has('private_network_accounts')) {
-                    private_accounts_data = config.get('private_network_accounts');
+                if (config.private_network_accounts) {
+                    private_accounts_data = config.private_network_accounts;
                 }
             }
-        }       
+        }
         
         // get the contact list from the Kademlia bucket
-        seeds_data = global.streemo_node.get_contacts();
+        seeds_data = global.streembit_node.get_contacts();
         var seeds = [];
-            
+        
         if (!error) {
             if (util.isArray(seeds_data)) {
                 //logger.debug("seeds_data isArray. length: " + seeds_data.length);
@@ -111,35 +116,37 @@ server.post('/seeds', function create(req, res, next) {
                     }
                 }
             }
-
+            
             data = {
                 seeds: seeds,
                 isprivate_network: isprivate_network,
                 private_accounts: private_accounts_data
             };
-        }        
-
-        completeRequest(error, data, res, next);
+        }
+        
+        completeRequest(error, data, response);
     }
     catch (e) {
         try {
-            completeRequest(e, null, res, next);
+            completeRequest(e, null, response);
             logger.error(e);
         }
         catch (e) {
             console.log("fatal error in 'server.post('/seeds')' error: %j", e);
         }
     }
-});
 
+}
 
 function start_server(callback) {
-    //  32319 is the generic Streemo discovery port
-    server.listen(32319, function () {
-        logger.debug('%s listening at %s', server.name, server.url);
-
+    
+    var srv = http.createServer(handle_request);
+    
+    srv.listen(32319, function () {
         callback();
+        logger.info((new Date()) + ' Discovery server is listening on port 32319');
     });
+
 }
 
 exports.start = start_server;

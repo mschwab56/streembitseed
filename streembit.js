@@ -21,14 +21,12 @@ Copyright (C) 2016 The Streembit software development team
 
 'use strict';
 
-var streemo = streemo || {};
-
-var DEFAULT_STREEMBIT_PORT = 32320;
+var streembit = streembit || {};
 
 // use the nodejs crypto library
 global.cryptolib = "crypto";
 
-global.streemo_node = 0;
+global.streembit_node = 0;
 
 var logger = require("streembitlib/logger/logger");
 global.applogger = logger;
@@ -46,21 +44,28 @@ var levelup = require('levelup');
 var async = require('async');
 var util = require('util');
 var assert = require('assert');
-var config = require('config');
-var wotkad = require('streembitlib/streembitkad/kaddht');
+var config = require('./config');
+var wotkad = require('streembitlib/kadlib');
 var discoverysrvc = require('./discoverysrvc');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
+streembit.account = require("./account");
+streembit.peernet = require("./peernet");
 
-var configarg = config.get('node');
-if ( !configarg ) {
-    throw new Exception("Application error: the seed configuration is missing")
-}
+assert(config.node, "Invalid start arguments. Corect start format -config 'config settings' where 'config settings' is a field in the config.json file");
+assert(config.node.address, "address must exists in the config field of config.json file");
+assert(config.node.port, "port must exists in the config field of config.json file");
+assert(config.node.seeds, "seeds must exists in the config field of config.json file");
+assert(Array.isArray(config.node.seeds), 'Invalid seeds supplied. "seeds" must be an array');
 
-assert(configarg, "Invalid start arguments. Corect start format -config 'config settings' where 'config settings' is a field in the seedsconf.js file");
-assert(configarg.address, "address must exists in the config field of seedsconf.js file");
-assert(configarg.port, "port must exists in the config field of seedsconf.js file");
-assert(configarg.seeds, "seeds must exists in the config field of seedsconf.js file");
-assert(Array.isArray(configarg.seeds), 'Invalid seeds supplied. "seeds" must be an array');
+// ensure the ports of the seeds are correct
+config.node.seeds.forEach(function (item, index, array) {
+    if (!item.address) {
+        throw new Exception("Application error: address for a seed is required")
+    }
+    if (!item.port) {
+        item.port = DEFAULT_STREEMBIT_PORT;
+    }
+});
 
 // initialize the database path
 var maindb_path = path.join(__dirname, 'db', 'streemodb');
@@ -69,14 +74,12 @@ async.waterfall([
     function (callback) {
         var wdir = process.cwd();
         var logspath = path.join(wdir, 'logs');
-        var logConfig = config.get('log');
-        var loglevel = logConfig && logConfig.level ? logConfig.level : "debug";
+        var loglevel = config.log && config.log.level ? config.log.level : "debug";
         logger.init(loglevel, logspath, null, callback);
     },      
     function (callback) {
         // create the db directory
-        logger.info("initializing database directory");
-        logger.info("maindb_path: %s", maindb_path);
+        logger.info("initializing database, maindb_path: %s", maindb_path);
         fs.open(maindb_path, 'r', function (err, fd) {
             if (err && err.code == 'ENOENT') {
                 /* the DB directory doesn't exist */
@@ -109,97 +112,26 @@ async.waterfall([
             }
         });
     },    
+    function (callback) {
+        var secrand = require('secure-random');
+        var password = secrand.randomBuffer(32).toString("hex");
+        streembit.account.create(password, callback);
+    },
     function (callback) {        
-        
-        var is_private_network = false;
-        var private_network_accounts = [];
-        if (config.has('private_network')) {
-            is_private_network = config.get('private_network');
-            if (config.has('private_network_accounts')) {
-                private_network_accounts = config.get('private_network_accounts');            
-            }
-        }
-        
-        logger.info("is_private_network: %s", is_private_network);
-        
-        var account;
-        if (is_private_network) {
-            if (!configarg.account) {
-                return callback("the account is required for private network ");
-            }
-            account = configarg.account;
-        }
-        else {
-            if (configarg.account) {
-                account = configarg.account;
-            }
-            else {
-                var acctxt = "" + configarg.address + ":" + configarg.port;
-                var accbuffer = new Buffer(acctxt);
-                account = crypto.createHash('sha1').update(accbuffer).digest().toString('hex');
-            }
-        }
-        
-        if (!account) {
-            return callback("error in creating account");
-        }
-
-        logger.info("node account: %s", account);
-        
-        var node = {
-            address: configarg.address,
-            port: configarg.port,
-            account: account,
-            seeds: configarg.seeds,
-            is_private_network: is_private_network,
-            private_network_accounts: private_network_accounts
-        };
-        
-        for (var i = 0; i < configarg.seeds.length; i++) {
-            if (!configarg.seeds[i].port) {
-                configarg.seeds[i].port = DEFAULT_STREEMBIT_PORT;
-            }
-
-            if (is_private_network) {
-                if (!configarg.seeds[i].account) {
-                    return callback("Invalid seed configuration data. The seeds must have an account in private network");
-                }
-            }
-            else {
-                if (!configarg.seeds[i].account) {
-                    var str = "" + configarg.seeds[i].address + ":" + configarg.seeds[i].port;
-                    var buffer = new Buffer(str);
-                    var acc = crypto.createHash('sha1').update(buffer).digest().toString('hex');
-                    configarg.seeds[i].account = acc;
-                }
-            }
-
-            logger.info("seed: %j", configarg.seeds[i]);
-        }        
-        
-        logger.debug("create peer");
-        
-        var onConnect = function (value) {
-            logger.info("peer connected %j", value);            
-        };
-
         var maindb = levelup(maindb_path);
-        streemo.PeerNet.start(node, maindb, onConnect);
-        callback();
+        streembit.peernet.start(maindb, callback);
     },
     function (callback) {
-        if (config.has('discoverysrvc')) {
-            var isdiscovery = config.get('discoverysrvc');
-            if (isdiscovery) {
-                logger.debug("to create discovery service");
+        if (config.discoverysrvc) {
+            logger.debug("to create discovery service");
+            try {
                 discoverysrvc.start(function () {
                     callback();
                 });
             }
-            else {
-                logger.debug("NO discovery service");
-                callback();
-            }                
+            catch (err) {
+                callback("discoverysrvc.start error: " + err.message)
+            }        
         }
         else {
             logger.debug("NO discovery service");
@@ -207,17 +139,16 @@ async.waterfall([
         }
     },
     function (callback) {
-        if (config.has('wsserver')) {
-            var isws = config.get('wsserver');
-            if (isws) {
+        if (config.wsserver) {
+            try {
                 logger.debug("create web socket server");
                 var wssrv = new websocketsrv();
-                wssrv.init();
-            }
-            else {
-                logger.debug("NO WS server");
+                wssrv.init();   
                 callback();
             }
+            catch (err) {
+                callback("wssrv.init error: " + err.message)
+            }         
         }
         else {
             logger.debug("NO WS server");
@@ -233,87 +164,3 @@ async.waterfall([
     }
 );
 
-
-streemo.PeerNet = (function (thisobj, logger, events) {
-    thisobj.node = 0;
-    
-    function onPeerMessage(message, info) {
-        //  NOT IMPLEMENTED
-    }    
-    
-    function msg_stored(node_id, item) {
-        //  NOT IMPLEMENTED
-    }    
-
-    thisobj.start = function (node, streemodb, onConnected) {
-        try {
-            logger.info('Bootstrap P2P network, initiate node');
-            
-            //thisobj.contactsdb = contactsdb;
-            
-            if (!node) {
-                throw new Error("Invalid P2P nodes parameter");
-            }
-            
-            var createpeer = function (node) {
-                
-                var options = {
-                    log: logger,
-                    address: node.address, 
-                    port: node.port,
-                    account: node.account,      
-                    seeds: node.seeds,
-                    storage: streemodb,
-                    peermsgHandler: onPeerMessage,
-                    is_private_network: node.is_private_network,
-                    private_network_accounts: node.private_network_accounts
-                };
-                
-                var peernode = wotkad(options);
-                peernode.create(function (err) {
-                    if (err) {
-                        return logger.error("Create peer error %j", err);
-                    }
-                    
-                    logger.debug("peernode connected, address is " + peernode.Address + ":" + peernode.Port);
-                    
-                    thisobj.node = peernode;
-                    global.streemo_node = thisobj.node;
-                    
-                });
-                
-
-                peernode.on('msgstored', function msg_stored(node_id, item) {
-                    if (item && item.key && item.hash) {
-                        logger.debug("peernet msg_stored, node_id: " + node_id + ", item.key: " + item.key);
-                    }
-                });
-
-            };
-            
-            // start the P2P overlay networks and Kademlia DHT by adding the first 2 peer nodes       
-            
-            assert(node.port, 'No p2p port is specified');
-            assert(node.account, 'No p2p account is specified');
-            
-            logger.debug("starting seed node %j", node);
-            
-            //  Create the first seeds of the P2P network
-            //  this seed nodea will never send a message and therefore
-            //  the public key is not required to verify its signature  
-            createpeer(node);
-            
-            logger.info('P2P overlay network started');
-        }
-        catch (err) {
-            logger.error("P2P handler start error %j", err);
-        }
-    }
-    
-    thisobj.is_network_running = function () {
-        return thisobj.node != 0;
-    }
-    
-    return thisobj;
-    
-}(streemo.PeerNet || {}, global.applogger, global.appevents));

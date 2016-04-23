@@ -1,0 +1,21 @@
+﻿{
+    "node": {
+        "address": "127.0.0.1",
+        "port": 32334,
+        "seeds": [
+            {
+                "address": "127.0.0.1",
+                "port": 32333
+            }
+        ]
+    },
+    "log": {
+        "level": "debug"
+    },
+    "discoverysrvc": false,
+    "max_discovery_seeds": 10,
+    "wsserver": false,
+    "private_network": false,
+    "private_network_accounts": []
+}
+

@@ -66,11 +66,11 @@ var WebSocketSrv = exports.WebSocketSrv = function () {
 
 WebSocketSrv.prototype.find_contact = function (contact, callback) {
     try {
-        if (!global.streemo_node) {
+        if (!global.streembit_node) {
             throw new Error("peermsg error: streemo node is not connected");
         }
         
-        global.streemo_node.find(contact, function (err, data) {
+        global.streembit_node.find(contact, function (err, data) {
             if (err) {
                 return callback(err);
             }
@@ -117,12 +117,12 @@ WebSocketSrv.prototype.start = function (io) {
                     return callback("invalid request parameter");
                 }
                 
-                if (!global.streemo_node) {
+                if (!global.streembit_node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
                 // true == store locally as well
-                global.streemo_node.put(request.key, request.value, true, function (err) {
+                global.streembit_node.put(request.key, request.value, true, function (err) {
                     if (err) {
                         logger.error("node.put error: %j", err);
                         return callback(err);
@@ -138,7 +138,7 @@ WebSocketSrv.prototype.start = function (io) {
 
                     // trye delete the message from the local storage if the message is a DELMSG type
                     if (request.key.indexOf("delmsg") > -1) {
-                        global.streemo_node.delete_account_message(request, function (err) {
+                        global.streembit_node.delete_account_message(request, function (err) {
                             logger.error("Deleting message failed. error: %j", err);
                         });
                     }
@@ -187,11 +187,11 @@ WebSocketSrv.prototype.start = function (io) {
                     return callback("invalid key parameter");
                 }
                 
-                if (!global.streemo_node) {
+                if (!global.streembit_node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
-                global.streemo_node.find(key, function (err, msg) {
+                global.streembit_node.find(key, function (err, msg) {
                     callback(err, msg);
                 });
             }
@@ -209,11 +209,11 @@ WebSocketSrv.prototype.start = function (io) {
                     return callback("invalid msgkey parameter");
                 }
                 
-                if (!global.streemo_node) {
+                if (!global.streembit_node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
-                global.streemo_node.get_stored_messages(account, msgkey, function (err, count, msgs) {
+                global.streembit_node.get_stored_messages(account, msgkey, function (err, count, msgs) {
                     var reply = "";
                     if (err) {
                         reply = { error: err };
@@ -251,8 +251,9 @@ WebSocketSrv.prototype.init = function () {
             response.writeHead(404);
             response.end();
         });
+
         srv.listen(32318, function () {
-            logger.info((new Date()) + ' Server is listening on port 32318');
+            logger.info((new Date()) + ' WS server is listening on port 32318');
         });
         
         this.server = srv;
