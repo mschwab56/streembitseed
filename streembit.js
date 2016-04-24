@@ -23,6 +23,23 @@ Copyright (C) 2016 The Streembit software development team
 
 var streembit = streembit || {};
 
+var privatekey_password;
+
+try {
+    if (process.argv.indexOf("-pksecret") != -1) {
+        privatekey_password = process.argv[process.argv.indexOf("-pksecret") + 1]; //grab the next item
+    }
+}
+catch (err) {
+    console.log("argument parse error: %j", err);
+}
+
+if (!privatekey_password) {
+    //  try to get the current directory
+    console.log("The private key password -pksecret command line parameter is required!");
+    process.exit(1);
+}
+
 // use the nodejs crypto library
 global.cryptolib = "crypto";
 
@@ -52,7 +69,6 @@ streembit.peernet = require("./peernet");
 streembit.bootclient = require("./bootclient");
 
 assert(config.node, "Invalid start arguments. Corect start format -config 'config settings' where 'config settings' is a field in the config.json file");
-//assert(config.node.address, "address must exists in the config field of config.json file");
 assert(config.node.port, "port must exists in the config field of config.json file");
 assert(config.node.seeds, "seeds must exists in the config field of config.json file");
 assert(Array.isArray(config.node.seeds), 'Invalid seeds supplied. "seeds" must be an array');
@@ -117,9 +133,7 @@ async.waterfall([
         });
     },    
     function (callback) {
-        var secrand = require('secure-random');
-        var password = secrand.randomBuffer(32).toString("hex");
-        streembit.account.create(password, callback);
+        streembit.account.create(privatekey_password, callback);
     },
     function (callback) {
         if (config.node.address) {
@@ -147,6 +161,30 @@ async.waterfall([
 
         var maindb = levelup(maindb_path);
         streembit.peernet.start(maindb, callback);
+    },
+    function (callback) {
+        var count = 0;
+        logger.debug("bucket info");       
+        var buckets = streembit.peernet.get_buckets();
+        if (buckets) {
+            for (var prop in buckets) {
+                var bucket = buckets[prop];
+                if (bucket._contacts) {
+                    for (var i = 0; i < bucket._contacts.length; i++) {
+                        logger.debug("bucket contact: %j", bucket._contacts[i]);
+                        count++;   
+                    }
+                }
+            }
+        }
+        
+        if (config.node.seeds && config.node.seeds.length && !count) {
+            // if seeds are defined then contacts mustr exists in the bucket
+            callback("no contacts exist in the bucket");
+        }
+        else {
+            callback();
+        }
     },
     function (callback) {
         if (config.wsserver) {

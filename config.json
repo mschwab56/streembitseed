@@ -1,12 +1,8 @@
 ﻿{
     "node": {
-        "port": 32334,
-        "seeds": [
-            {
-                "address": "127.0.0.1",
-                "port": 32333
-            }
-        ]
+        "address": "127.0.0.1",
+        "port": 32320,
+        "seeds": [ ]
     },
     "log": {
         "level": "debug"

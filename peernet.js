@@ -43,6 +43,13 @@ streembit.PeerNet = (function (thisobj, logger, events) {
         logger.error('RPC error: %j', err);
     }
     
+    thisobj.get_buckets = function (streembitdb, callback) {
+        if (thisobj.node) {
+            var buckets = thisobj.node._router._buckets;
+            return buckets;
+        }
+    },
+    
     thisobj.start = function (streembitdb, callback) {
         try {
             
