@@ -50,12 +50,17 @@ var discoverysrvc = require('./discoverysrvc');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
 streembit.account = require("./account");
 streembit.peernet = require("./peernet");
+streembit.bootclient = require("./bootclient");
 
 assert(config.node, "Invalid start arguments. Corect start format -config 'config settings' where 'config settings' is a field in the config.json file");
-assert(config.node.address, "address must exists in the config field of config.json file");
+//assert(config.node.address, "address must exists in the config field of config.json file");
 assert(config.node.port, "port must exists in the config field of config.json file");
 assert(config.node.seeds, "seeds must exists in the config field of config.json file");
 assert(Array.isArray(config.node.seeds), 'Invalid seeds supplied. "seeds" must be an array');
+
+if (!config.node.address && (!config.node.seeds || !config.node.seeds.length)) {
+    throw new Exception("If the address is not defined then the seed is required")
+}
 
 // ensure the ports of the seeds are correct
 config.node.seeds.forEach(function (item, index, array) {
@@ -117,7 +122,30 @@ async.waterfall([
         var password = secrand.randomBuffer(32).toString("hex");
         streembit.account.create(password, callback);
     },
-    function (callback) {        
+    function (callback) {
+        if (config.node.address) {
+            callback();
+        }
+        else {
+            streembit.bootclient.discovery(config.node.seeds[0], function (err, address) {
+                if (err) {
+                    callback(err);
+                }
+                else {
+                    if (!address) {
+                        callback("failed to populate discovery address");
+                    }
+                    else {
+                        config.node.address = address;
+                        callback();
+                    }
+                }
+            });
+        }
+    },
+    function (callback) {
+        logger.debug("node address: %s", config.node.address);        
+
         var maindb = levelup(maindb_path);
         streembit.peernet.start(maindb, callback);
     },

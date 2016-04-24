@@ -35,13 +35,17 @@ streembit.PeerNet = (function (thisobj, logger, events) {
     
     thisobj.node = 0;
     
+    function onPeerMessage(message, info) {
+        
+    }
+
     function onTransportError(err) {
         logger.error('RPC error: %j', err);
     }
     
     thisobj.start = function (streembitdb, callback) {
         try {
-
+            
             logger.info('Bootstrap P2P network');
             
             assert(config.node.address, "address must exists in the config field of config.json file");
@@ -49,13 +53,19 @@ streembit.PeerNet = (function (thisobj, logger, events) {
             assert(streembit.account.name, "account name must be initialized");
             assert(streembit.account.public_key, "account public key must be initialized");
             
-            var contact = wotkad.contacts.StreembitContact({
+            var param = {
                 address: config.node.address,
                 port: config.node.port,
                 account: streembit.account.name,
                 public_key: streembit.account.public_key
-            });
-            var transport = wotkad.transports.TCP(contact);
+            };
+            
+            var contact = wotkad.contacts.StreembitContact(param);
+            
+            var transport_options = {
+                logger: logger
+            };
+            var transport = wotkad.transports.TCP(contact, transport_options);
             
             transport.after('open', function (next) {
                 // exit middleware stack if contact is blacklisted
@@ -72,7 +82,8 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                 transport: transport,
                 logger: logger,
                 storage: streembitdb,
-                seeds: config.node.seeds
+                seeds: config.node.seeds,
+                onPeerMessage: onPeerMessage
             };
             
             wotkad.create(options, function (err, peer) {
@@ -82,7 +93,7 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                 
                 thisobj.node = peer;
                 callback();
-            });   
+            });
 
             //
             //
