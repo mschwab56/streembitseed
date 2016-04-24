@@ -136,6 +136,8 @@ async.waterfall([
         streembit.account.create(privatekey_password, callback);
     },
     function (callback) {
+        logger.info("public key: %s", streembit.account.public_key)
+
         if (config.node.address) {
             callback();
         }
