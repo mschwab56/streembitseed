@@ -46,7 +46,6 @@ var util = require('util');
 var assert = require('assert');
 var config = require('./config');
 var wotkad = require('streembitlib/kadlib');
-var discoverysrvc = require('./discoverysrvc');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
 streembit.account = require("./account");
 streembit.peernet = require("./peernet");
@@ -148,23 +147,6 @@ async.waterfall([
 
         var maindb = levelup(maindb_path);
         streembit.peernet.start(maindb, callback);
-    },
-    function (callback) {
-        if (config.discoverysrvc) {
-            logger.debug("to create discovery service");
-            try {
-                discoverysrvc.start(function () {
-                    callback();
-                });
-            }
-            catch (err) {
-                callback("discoverysrvc.start error: " + err.message)
-            }        
-        }
-        else {
-            logger.debug("NO discovery service");
-            callback();
-        }
     },
     function (callback) {
         if (config.wsserver) {

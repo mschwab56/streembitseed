@@ -11,8 +11,6 @@
     "log": {
         "level": "debug"
     },
-    "discoverysrvc": false,
-    "max_discovery_seeds": 10,
     "wsserver": false,
     "private_network": false,
     "private_network_accounts": []
