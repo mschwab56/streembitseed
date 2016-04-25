@@ -26,6 +26,7 @@ var streembit = streembit || {};
 var assert = require('assert');
 var config = require('./config');
 var wotkad = require('streembitlib/kadlib');
+var wotmsg = require('streembitlib/message/wotmsg');
 streembit.account = require("./account");
 
 var DEFAULT_STREEMBIT_PORT = 32320;
@@ -35,8 +36,143 @@ streembit.PeerNet = (function (thisobj, logger, events) {
     
     thisobj.node = 0;
     
-    function onPeerMessage(message, info) {
+    var listOfPublicKeys = {};
+    
+    function isContactAllowed(contact) {
         
+        return true;
+    }
+    
+    function validateMessage(params, contact, callback) {
+        var is_update_key = false, is_system_update_key = false, msgid = 0;
+        
+        try {
+            var payload = wotmsg.getpayload(params.value);
+            if (!payload || !payload.data || !payload.data.type) {
+                return callback("validateMessage error invalid payload");
+            }
+            
+            if (payload.data.type == wotmsg.MSGTYPE.PUBPK || payload.data.type == wotmsg.MSGTYPE.UPDPK || payload.data.type == wotmsg.MSGTYPE.DELPK) {
+                if (!payload.data[wotmsg.MSGFIELD.PUBKEY]) {
+                    return callback("validateMessage error invalid public key payload");
+                }
+                is_update_key = true;
+            }
+            
+            var account_key;
+            if (is_update_key) {
+                //  is_update_key == true -> the publisher claims this is a public key store, update or delete message
+                //  check if the existing key does exits and if yes then validate the message
+                account_key = params.key;
+            }
+            else {
+                //  get the iss field of the JSON web token message
+                account_key = payload.iss;
+            }
+            
+            if (!account_key) {
+                return callback("validateMessage error: invalid public key account field");
+            }
+            
+            if (payload.data.type == wotmsg.MSGTYPE.DELMSG) {
+                msgid = payload.data[wotmsg.MSGFIELD.MSGID];
+                if (!msgid) {
+                    return callback("validateMessage error: invalid MSGID for delete message");
+                }
+            }
+        }
+        catch (err) {
+            return callback("onKadMessage error: " + err.message);
+        }
+        
+        thisobj.node.get(account_key, function (err, value) {
+            try {
+                if (err) {
+                    if (is_update_key && err.message && err.message.indexOf("error: 0x0100") > -1) {
+                        logger.debug('validateMessage PUBPK key not exists on the network, allow to complete PUBPK message');
+                        //  TODO check whether the public key matches with private network keys
+                        return callback(null, true);
+                    }
+                    else {
+                        return callback('validateMessage get existing PK error: ' + err.message);
+                    }
+                }
+                else {
+                    logger.debug("validateMessage decode wot message");
+                    var stored_payload = wotmsg.getpayload(value);
+                    var stored_pkkey = stored_payload.data[wotmsg.MSGFIELD.PUBKEY];
+                    if (!stored_pkkey) {
+                        return callback('validateMessage error: stored public key does not exists');
+                    }
+                    
+                    if (contact.public_key != stored_pkkey) {
+                        return callback('validateMessage error: stored public key and contact public key do not match');
+                    }
+                    
+                    //  if this is a private network then the public key must matches with the account's key in the list of public key
+                    //  TODO check whether the public key matches with private network keys
+                    
+                    logger.debug("validateMessage validate account: " + account_key + " public key: " + stored_pkkey);
+                    
+                    if (payload.data.type == wotmsg.MSGTYPE.PUBPK || 
+                        payload.data.type == wotmsg.MSGTYPE.UPDPK || 
+                        payload.data.type == wotmsg.MSGTYPE.DELPK ||
+                        payload.data.type == wotmsg.MSGTYPE.OMSG ||
+                        payload.data.type == wotmsg.MSGTYPE.DELMSG) {
+                        var decoded_msg = wotmsg.decode(params.value, stored_pkkey);
+                        if (!decoded_msg) {
+                            return callback('VERIFYFAIL ' + account);
+                        }
+                        
+                        //  passed the validation -> add to the network
+                        logger.debug('validateMessage validation for msgtype: ' + payload.data.type + '  is OK');
+                        
+                        //node._log.debug('data: %j', params);
+                        callback(null, true);
+                    }
+                }
+            }
+            catch (val_err) {
+                node._log.error("validateMessage error: " + val_err.message);
+            }
+        });
+    }
+    
+    function onKadMessage(message, contact, next) {
+        try {
+            
+            // TODO check for the private network
+            if (!isContactAllowed(contact)) {
+                return next(new Error('Message dropped, reason: contact ' + contact.account + ' is not allowed'));
+            }
+            
+            if (!message || !message.method || message.method != "STORE" || 
+                !message.params || !message.params.item || !message.params.item.key) {
+                // only validate the STORE messages
+                return next();
+            }
+            
+            logger.debug('validate STORE key: ' + message.params.item.key);
+            
+            validateMessage(message.params.item, contact, function (err, isvalid) {
+                if (err) {
+                    return next(new Error('Message dropped, error: ' + ((typeof err === 'string') ? err : (err.message ? err.message :  "validation failed"))));
+                }
+                if (!isvalid) {
+                    return next(new Error('Message dropped, reason: validation failed'));
+                }
+                
+                // valid message
+                return next();
+            });
+        }
+        catch (err) {
+            logger.error("onKadMessage error: " + err.message);
+            next("onKadMessage error: " + err.message);
+        }
+    }
+    
+    function onPeerMessage(message, info) {        
     }
 
     function onTransportError(err) {
@@ -82,6 +218,9 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                 next();
             });
             
+            // message validator
+            transport.before('receive', onKadMessage);
+
             // handle errors from RPC
             transport.on('error', onTransportError);
             
