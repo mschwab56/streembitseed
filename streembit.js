@@ -136,31 +136,20 @@ async.waterfall([
         streembit.account.create(privatekey_password, callback);
     },
     function (callback) {
-        logger.info("public key: %s", streembit.account.public_key)
-
-        if (config.node.address) {
-            callback();
+        logger.info("public key: %s", streembit.account.public_key);
+        streembit.bootclient.discovery(config.node.address, config.node.seeds[0], callback);
+    },
+    function (address, callback) {
+        if (!address) {
+            callback("failed to populate discovery address");
         }
         else {
-            streembit.bootclient.discovery(config.node.seeds[0], function (err, address) {
-                if (err) {
-                    callback(err);
-                }
-                else {
-                    if (!address) {
-                        callback("failed to populate discovery address");
-                    }
-                    else {
-                        config.node.address = address;
-                        callback();
-                    }
-                }
-            });
+            config.node.address = address;
+            streembit.bootclient.resolveseeds(config.node.seeds, callback);
         }
     },
-    function (callback) {
-        logger.debug("node address: %s", config.node.address);        
-
+    function (seeds, callback) {
+        config.node.seeds = seeds;   
         var maindb = levelup(maindb_path);
         streembit.peernet.start(maindb, callback);
     },

@@ -24,10 +24,90 @@ Copyright (C) 2016 The Streembit software development team
 var streembit = streembit || {};
 
 var net = require('net');
+var dns = require('dns');
+var async = require('async');
 
 streembit.bootclient = (function (client, logger, config, events) {
+    
+    function is_ipaddress(address) {
+        var ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/; // /^(\d{ 1, 3 })\.(\d { 1, 3 })\.(\d { 1, 3 })\.(\d { 1, 3 })$/;   
+        var valid = ipPattern.test(address);
+        return valid;
+    }
+    
+    function get_seed_ipaddress(address, callback) {
+        if (!address) {
+            return callback("get_seed_ipaddress error: invalid address");
+        }
+        
+        var isip = is_ipaddress(address);
+        if (isip) {
+            return callback(null, address);
+        }       
+        
+        dns.resolve4(address, function (err, addresses) {
+            if (err) {
+                return callback(err);
+            }
+            
+            if (!addresses || !addresses.length) {
+                return callback("dns resolve failed to get addresses");
+            }
+            
+            callback(null, addresses[0]);
+        });
+    }
+    
+    client.resolveseeds = function (seeds, callback) {
+        if (!seeds || !Array.isArray(seeds)) {
+            return callback();
+        }        
+        
+        async.map(
+            seeds,
+            function (seed, done) {
+                var result = {};
+                try {
+                    // get the IP address
+                    get_seed_ipaddress(seed.address, function (err, address) {
+                        if (err) {
+                            result.error = err;
+                            return done(null, result);
+                        }
+                        
+                        result.address = address;
+                        result.port = seed.port;
+                        result.public_key = seed.public_key;
+                        done(null, result);                
+                    });
+                }
+                catch (e) {
+                    result.error = e;
+                    done(null, result);
+                }
+            },
+            function (err, results) {
+                if (err || results.length == 0) {
+                    return callback("Failed to resolve any seed address");
+                }
+                
+                var seedlist = [];
+                results.forEach(function (item, index, array) {
+                    if (item.address && !item.error) {
+                        seedlist.push({address: item.address, port: item.port, public_key: item.public_key});
+                    }
+                });
 
-    client.discovery = function(seed, fn) {
+                callback(null, seedlist);
+            }
+        );
+    };
+
+    client.discovery = function (address, seed, callback) {
+        if (is_ipaddress(address)) {
+            return callback(null, address);
+        }
+
         var client = net.connect( 
             {
                 port: seed.port, 
@@ -47,10 +127,10 @@ streembit.bootclient = (function (client, logger, config, events) {
                     reply.address = reply.address.replace(ipv6prefix, '');
                 }
 
-                fn(null, reply.address);
+                callback(null, reply.address);
             }
             else {
-                fn("discovery failed for " + seed.address + ":" + seed.port);
+                callback("discovery failed for " + seed.address + ":" + seed.port);
             }
         });
         
@@ -58,7 +138,7 @@ streembit.bootclient = (function (client, logger, config, events) {
         });
         
         client.on('error', function (err) {
-            fn("self discovery failed with " + seed.address + ":" + seed.port + ". " + (err.message ? err.message : err));
+            callback("self discovery failed with " + seed.address + ":" + seed.port + ". " + (err.message ? err.message : err));
         });
     };
     
