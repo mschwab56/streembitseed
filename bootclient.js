@@ -59,8 +59,8 @@ streembit.bootclient = (function (client, logger, config, events) {
     }
     
     client.resolveseeds = function (seeds, callback) {
-        if (!seeds || !Array.isArray(seeds)) {
-            return callback();
+        if (!seeds || !Array.isArray(seeds) || seeds.length == 0) {
+            return callback(null, seeds);
         }        
         
         async.map(
