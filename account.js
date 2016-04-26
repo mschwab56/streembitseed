@@ -179,9 +179,8 @@ streembit.account = (function (accountobj, logger) {
             // set the PPKI key
             accountobj.crypto_key = key;
 
-            // account is the hash of the pkey
-            var account = nodecrypto.createHash('sha1').update(this.public_key).digest('hex');
-            accountobj.name = account;
+            // The account name will be the ip address + port set by the node StreembitContact object 
+            accountobj.name = "";
 
             accountobj.ecdh_key = ecdh_key;            
             accountobj.ecdhkeys = ecdhkeys;

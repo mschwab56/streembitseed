@@ -36,10 +36,23 @@ streembit.PeerNet = (function (thisobj, logger, events) {
     
     thisobj.node = 0;
     
-    var listOfPublicKeys = {};
+    var listOfContacts = {};
+    
+    function updateContact(contact) {
+        if (contact && contact.account) {
+            var cobj = {
+                public_key: contact.public_key,
+                nodeID: contact.nodeID,
+                address: contact.address,
+                port: contact.port,
+                updated: Date.now()
+            }
+            listOfContacts[contact.account] = cobj;
+        }
+    }
     
     function isContactAllowed(contact) {
-        
+        //TODO for private networks    
         return true;
     }
     
@@ -133,7 +146,7 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                 }
             }
             catch (val_err) {
-                node._log.error("validateMessage error: " + val_err.message);
+                logger.error("validateMessage error: " + val_err.message);
             }
         });
     }
@@ -148,6 +161,7 @@ streembit.PeerNet = (function (thisobj, logger, events) {
             
             if (!message || !message.method || message.method != "STORE" || 
                 !message.params || !message.params.item || !message.params.item.key) {
+                updateContact(contact);
                 // only validate the STORE messages
                 return next();
             }
@@ -193,13 +207,12 @@ streembit.PeerNet = (function (thisobj, logger, events) {
             
             assert(config.node.address, "address must exists in the config field of config.json file");
             assert(config.node.port, "port must exists in the config field of config.json file");
-            assert(streembit.account.name, "account name must be initialized");
             assert(streembit.account.public_key, "account public key must be initialized");
             
             var param = {
                 address: config.node.address,
                 port: config.node.port,
-                account: streembit.account.name,
+                account: streembit.account.name || "",
                 public_key: streembit.account.public_key
             };
             
