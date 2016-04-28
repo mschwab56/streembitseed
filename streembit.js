@@ -43,8 +43,6 @@ if (!privatekey_password) {
 // use the nodejs crypto library
 global.cryptolib = "crypto";
 
-global.streembit_node = 0;
-
 var logger = require("streembitlib/logger/logger");
 global.applogger = logger;
 

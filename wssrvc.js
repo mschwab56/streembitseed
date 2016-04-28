@@ -16,14 +16,17 @@ If not, see http://www.gnu.org/licenses/.
 Author: Tibor Zsolt Pardi 
 Copyright (C) 2016 The Streembit software development team
 -------------------------------------------------------------------------------------------------------------------------
-
-
 */
+
+var streembit = streembit || {};
+
 var net = require('net');
 var logger = require('streembitlib/logger/logger');
 var http = require('http');
 var appevents = require('streembitlib/events/AppEvents');
 var wotmsg = require('streembitlib/message/wotmsg');
+var wotkad = require('streembitlib/kadlib');
+streembit.peernet = require("./peernet");
 
 
 function ClientList() {
@@ -64,32 +67,6 @@ var WebSocketSrv = exports.WebSocketSrv = function () {
     }
 };
 
-WebSocketSrv.prototype.find_contact = function (contact, callback) {
-    try {
-        if (!global.streembit_node) {
-            throw new Error("peermsg error: streemo node is not connected");
-        }
-        
-        global.streembit_node.find(contact, function (err, data) {
-            if (err) {
-                return callback(err);
-            }
-            
-            try {
-                var payload = wotmsg.getpayload(data);
-                var contact_details = payload.data;
-                callback(null, contact_details);
-            }
-            catch (e) {
-                callback(e);
-            }
-        });
-
-    }
-    catch (err) {
-        logger.error("find_contact error %j", err);
-    }
-}
 
 WebSocketSrv.prototype.start = function (io) {
     var self = this;
@@ -117,12 +94,12 @@ WebSocketSrv.prototype.start = function (io) {
                     return callback("invalid request parameter");
                 }
                 
-                if (!global.streembit_node) {
+                if (!streembit.peernet.node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
                 // true == store locally as well
-                global.streembit_node.put(request.key, request.value, true, function (err) {
+                streembit.peernet.node.put(request.key, request.value, function (err) {
                     if (err) {
                         logger.error("node.put error: %j", err);
                         return callback(err);
@@ -138,7 +115,7 @@ WebSocketSrv.prototype.start = function (io) {
 
                     // trye delete the message from the local storage if the message is a DELMSG type
                     if (request.key.indexOf("delmsg") > -1) {
-                        global.streembit_node.delete_account_message(request, function (err) {
+                        streembit.peernet.node.delete_account_message(request, function (err) {
                             logger.error("Deleting message failed. error: %j", err);
                         });
                     }
@@ -181,17 +158,17 @@ WebSocketSrv.prototype.start = function (io) {
             }
         });
         
-        socket.on("find", function (key, callback) {
+        socket.on("get", function (key, callback) {
             try {
                 if (!key) {
                     return callback("invalid key parameter");
                 }
                 
-                if (!global.streembit_node) {
+                if (!streembit.peernet.node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
-                global.streembit_node.find(key, function (err, msg) {
+                streembit.peernet.node.get(key, function (err, msg) {
                     callback(err, msg);
                 });
             }
@@ -200,28 +177,52 @@ WebSocketSrv.prototype.start = function (io) {
             }
         });
         
-        socket.on("get_account_messages", function (account, msgkey, callback) {
+        socket.on("find_contact", function (account, public_key, callback) {
             try {
-                if (!account) {
-                    return callback("invalid key parameter");
-                }
-                if (!msgkey) {
-                    return callback("invalid msgkey parameter");
+                if (!streembit.peernet.node) {
+                    throw new Error("peermsg error: streemo node is not connected");
                 }
                 
-                if (!global.streembit_node) {
+                if (!account || !public_key) {
+                    return callback("invalid find_contact parameters");
+                }                
+                
+                wotkad.find_contact(streembit.peernet.node, account, public_key, function (err, contact) {
+                    if (!err && contact && contact.account == account) {
+                        contact.protocol = "tcp";
+                        contact.name = account;
+                        callback(null, contact);
+                    }
+                    else {
+                        callback(err, null);
+                    }
+                });
+            }
+            catch (err) {
+                logger.error("find_contact error %j", err);
+            }
+        });
+        
+        socket.on("get_range", function (msgkey, callback) {
+            try {
+                if (!msgkey) {
+                    return callback("get_range, invalid msgkey parameter");
+                }                
+                if (!streembit.peernet.node) {
                     return callback("error: 0x0110, the node is not initialized");
                 }
                 
-                global.streembit_node.get_stored_messages(account, msgkey, function (err, count, msgs) {
-                    var reply = "";
+                streembit.peernet.node.get_range(msgkey, function (err, result) {
+                    var errmsg;
                     if (err) {
-                        reply = { error: err };
+                        if (err.message) {
+                            errmsg = err.message;
+                        }
+                        else {
+                            errmsg = "" + err;
+                        }
                     }
-                    else {
-                        reply = { error: 0, count: count, messages: msgs };
-                    }
-                    callback(null, reply);
+                    callback(errmsg, result);
                 });
 
             }

@@ -1,10 +1,10 @@
 ﻿{
     "node": {
-        "address": "127.0.0.1",
+        "address": "192.168.1.79",
         "port": 32334,
         "seeds": [
             {
-                "address": "127.0.0.1",
+                "address": "192.168.1.79",
                 "port": 32333,
                 "public_key": "0202eb6c6198f22c5fc0d3ebfbc70d545f0c3052e2c7e7bc17f48464b18b6380f9"
             }
@@ -13,7 +13,7 @@
     "log": {
         "level": "debug"
     },
-    "wsserver": false,
+    "wsserver": true,
     "private_network": false,
     "private_network_accounts": []
 }

@@ -24,6 +24,7 @@ Copyright (C) 2016 The Streembit software development team
 var streembit = streembit || {};
 
 var assert = require('assert');
+var querystring = require('querystring');
 var config = require('./config');
 var wotkad = require('streembitlib/kadlib');
 var wotmsg = require('streembitlib/message/wotmsg');
@@ -32,9 +33,10 @@ streembit.account = require("./account");
 var DEFAULT_STREEMBIT_PORT = 32320;
 
 
-streembit.PeerNet = (function (thisobj, logger, events) {
+streembit.PeerNet = (function (peerobj, logger, events) {
     
-    thisobj.node = 0;
+    peerobj.node = 0;
+    peerobj.db = 0;
     
     var listOfContacts = {};
     
@@ -88,20 +90,26 @@ streembit.PeerNet = (function (thisobj, logger, events) {
             }
             
             if (payload.data.type == wotmsg.MSGTYPE.DELMSG) {
-                msgid = payload.data[wotmsg.MSGFIELD.MSGID];
-                if (!msgid) {
-                    return callback("validateMessage error: invalid MSGID for delete message");
+                // only the owner (recipient) of the message can delete the message
+                try {
+                    var msgtags = params.key.split("/");
+                    if (!msgtags || !msgtags.length || msgtags.length < 3 || msgtags[0] != account_key || msgtags[1] != "message") {
+                        return callback("validateMessage error: delete message failed.");
+                    }
+                }
+                catch (err) {
+                    return callback("validateMessage error: delete message failed, parse exception");
                 }
             }
         }
         catch (err) {
-            return callback("onKadMessage error: " + err.message);
+            return callback("validateMessage error: " + err.message);
         }
         
-        thisobj.node.get(account_key, function (err, value) {
+        peerobj.node.get(account_key, function (err, value) {
             try {
                 if (err) {
-                    if (is_update_key && err.message && err.message.indexOf("error: 0x0100") > -1) {
+                    if (is_update_key && err.message && err.message.indexOf("0x0100") > -1) {
                         logger.debug('validateMessage PUBPK key not exists on the network, allow to complete PUBPK message');
                         //  TODO check whether the public key matches with private network keys
                         return callback(null, true);
@@ -117,13 +125,15 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                     if (!stored_pkkey) {
                         return callback('validateMessage error: stored public key does not exists');
                     }
-                    
-                    if (contact.public_key != stored_pkkey) {
-                        return callback('validateMessage error: stored public key and contact public key do not match');
-                    }
-                    
+
                     //  if this is a private network then the public key must matches with the account's key in the list of public key
                     //  TODO check whether the public key matches with private network keys
+                    
+                    if (payload.data.type == wotmsg.MSGTYPE.PUBPK) {
+                        if (payload.data[wotmsg.MSGFIELD.PUBKEY] != stored_pkkey) {
+                            return callback('validateMessage error: stored public key and message public key do not match');
+                        }
+                    }     
                     
                     logger.debug("validateMessage validate account: " + account_key + " public key: " + stored_pkkey);
                     
@@ -186,6 +196,132 @@ streembit.PeerNet = (function (thisobj, logger, events) {
         }
     }
     
+    function expireHandler(data, callback) {
+        try {
+            if (!data || !data.key || !data.value) {
+                logger.debug("delete invalid message");
+                return callback(true);
+            }
+            
+            var msgobj = JSON.parse(data.value);
+            if (!msgobj || !msgobj.value) {
+                // invalid data
+                return callback(true);
+            }
+            
+            // get the payload
+            var payload = wotmsg.getpayload(msgobj.value);
+            
+            if (data.key.indexOf("/") == -1) {
+                //  The account-key messages publishes the public key of the account to the network
+                //  Delete the message if it is marked to be deleted, otherwise never delete the account-key messages           
+                
+                if ((!payload || !payload.data || !payload.data.type) || payload.data.type == wotmsg.MSGTYPE.DELPK) {
+                    logger.debug('DELETE public key of ' + data.key);
+                    return callback(true);
+                }
+                
+                // return, no delete
+                return callback();
+            }
+            
+            if (!msgobj.timestamp) {
+                logger.debug("delete message without timestamp, key: %s", data.key);
+                return callback(true);
+            }
+            
+            // check for MSGTYPE.DELMSG
+            if (payload.data.type == wotmsg.MSGTYPE.DELMSG) {
+                logger.debug("delete message with type DELMSG, key: %s", data.key);
+                return callback(true);
+            }
+            
+            var currtime = Date.now();
+            var expiry_time = 0;
+            var keyitems = data.key.split("/");
+            if (keyitems && keyitems.length > 2 && keyitems[1] == "message") {
+                expiry_time = value.timestamp + T_MSG_EXPIRE;
+            }
+            else {
+                expiry_time = value.timestamp + T_ITEM_EXPIRE;
+            }
+            
+            if (expiry_time <= currtime) {
+                logger.debug("delete expired message %s", data.key);
+                callback(true);
+            }
+            else {
+                callback();
+            }
+        }
+        catch (err) {
+            // delete the time which triggered error
+            callback(true);
+            logger.error("expireHandler error: %j", err);
+        }
+    }
+    
+    function findRangeMessages(query, callback) {
+        try {
+            logger.debug('getRangeMessages for %s', query);
+            
+            var self = peerobj;
+            var stream = peerobj.db.createReadStream();
+            
+            var key, count = 0, page = 10, start = 0;
+            var messages = [];
+            
+            var params = querystring.parse(query);
+            if (!params.key) {
+                return callback('key is missing in range query');
+            }
+            key = params.key;
+            
+            if (params.page && !isNaN(params.page )) {
+                page = parseInt(params.page);
+                page = page <= 0 ? 10 : page;
+            }
+            if (params.start && !isNaN(params.start)) {
+                start = parseInt(params.start);
+                start = start < 0 ? 0 : start;
+            }
+            
+            stream.on('data', function (data) {
+                if (data && data.key && (typeof data.key === 'string') && data.value && (typeof data.value === 'string')) {
+                    try {
+                        if (data.key.indexOf(key) > -1) {
+                            var jsonobj = JSON.parse(data.value);
+                            if (jsonobj.value) {
+                                var payload = wotmsg.getpayload(jsonobj.value);
+                                if (payload.data.type != wotmsg.MSGTYPE.DELMSG) {
+                                    if (count >= start && messages.length < page) {
+                                        messages.push({ key: data.key, value: jsonobj.value });
+                                    }
+                                    count++;
+                                }
+                            }
+                        }
+                    } 
+                    catch (err) {
+                        logger.error('getRangeMessages error: %j', err);
+                    }
+                }
+            });
+            
+            stream.on('error', function (err) {
+                callback(err.message ? err.message : err);
+            });
+            
+            stream.on('end', function () {
+                callback(null, count, page, start, messages);
+            });
+        }
+        catch (err) {
+            logger.error('getStoredMessages error: %j', err);
+            callback(err.message ? err.message : err);
+        }
+    };
+
     function onPeerMessage(message, info) {        
     }
 
@@ -193,14 +329,14 @@ streembit.PeerNet = (function (thisobj, logger, events) {
         logger.error('RPC error: %j', err);
     }
     
-    thisobj.get_buckets = function (streembitdb, callback) {
-        if (thisobj.node) {
-            var buckets = thisobj.node._router._buckets;
+    peerobj.get_buckets = function (streembitdb, callback) {
+        if (peerobj.node) {
+            var buckets = peerobj.node._router._buckets;
             return buckets;
         }
     },
     
-    thisobj.start = function (streembitdb, callback) {
+    peerobj.start = function (streembitdb, callback) {
         try {
             
             logger.info('Bootstrap P2P network');
@@ -242,7 +378,9 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                 logger: logger,
                 storage: streembitdb,
                 seeds: config.node.seeds,
-                onPeerMessage: onPeerMessage
+                onPeerMessage: onPeerMessage,
+                expireHandler: expireHandler,
+                findRangeMessages: findRangeMessages
             };
             
             wotkad.create(options, function (err, peer) {
@@ -250,7 +388,8 @@ streembit.PeerNet = (function (thisobj, logger, events) {
                     return callback(err);
                 }
                 
-                thisobj.node = peer;
+                peerobj.db = streembitdb;
+                peerobj.node = peer;
                 callback();
             });
 
@@ -262,7 +401,7 @@ streembit.PeerNet = (function (thisobj, logger, events) {
         }
     }
     
-    return thisobj;
+    return peerobj;
     
 }(streembit.PeerNet || {}, global.applogger, global.appevents));
 
