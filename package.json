@@ -1,6 +1,6 @@
 {
   "name": "streembitseed",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Streembit seed node",
   "main": "streembit.js",
   "author": {
@@ -8,7 +8,6 @@
     "email": "tzpardi@streembit.com"
   },
   "dependencies": {
-    "config": "^1.17.1",
     "leveldown": "^1.4.3",
     "levelup": "^1.3.1",
     "pm2": "^1.0.0",

@@ -22,12 +22,14 @@ Copyright (C) 2016 The Streembit software development team
 
 var async = require("async");
 var pm2 = require('pm2');
+var config = require('./config');
+
 
 var homedir;
 
 try {
-    if (process.argv.indexOf("-homedir") != -1) {
-        homedir = process.argv[process.argv.indexOf("-homedir") + 1]; //grab the next item
+    if (config.homedir) {
+        homedir = config.homedir; //grab the next item
     }
 }
 catch (err) {
