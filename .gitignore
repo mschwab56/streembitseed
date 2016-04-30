@@ -47,3 +47,6 @@ logs/*.log
 /build
 
 /.vs/config/applicationhost.config
+
+config.json
+

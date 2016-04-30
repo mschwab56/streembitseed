@@ -102,7 +102,7 @@ WebSocketSrv.prototype.start = function (io) {
                 streembit.peernet.node.put(request.key, request.value, function (err) {
                     if (err) {
                         logger.error("node.put error: %j", err);
-                        return callback(err);
+                        return callback(err.message ? err.message : err);
                     }
 
                     callback(null);
@@ -124,6 +124,7 @@ WebSocketSrv.prototype.start = function (io) {
                 });
             }
             catch (err) {
+                callback(err.message ? err.message : err)
                 logger.error(err);
             }
         });
@@ -137,7 +138,12 @@ WebSocketSrv.prototype.start = function (io) {
                 var contact = request.contact;
                 if (contact.protocol == "tcp") {
                     self.send_tcp_request(request, function (err) {
-                        callback(err);
+                        if (err) {
+                            callback(err.message ? err.message : err)
+                        }
+                        else {
+                            callback();
+                        }
                     });
                 }
                 else {         
@@ -154,6 +160,7 @@ WebSocketSrv.prototype.start = function (io) {
                 }      
             }
             catch (err) {
+                callback(err.message ? err.message : err)
                 logger.error(err);
             }
         });
@@ -169,10 +176,16 @@ WebSocketSrv.prototype.start = function (io) {
                 }
                 
                 streembit.peernet.node.get(key, function (err, msg) {
-                    callback(err, msg);
+                    if (err) {
+                        callback(err.message ? err.message : err);
+                    }
+                    else {
+                        callback(null, msg);
+                    }
                 });
             }
             catch (err) {
+                callback(err.message ? err.message : err);
                 logger.error(err);
             }
         });
@@ -194,11 +207,12 @@ WebSocketSrv.prototype.start = function (io) {
                         callback(null, contact);
                     }
                     else {
-                        callback(err, null);
+                        callback(err.message ? err.message : err, null);
                     }
                 });
             }
             catch (err) {
+                callback(err.message ? err.message : err);
                 logger.error("find_contact error %j", err);
             }
         });
@@ -227,6 +241,7 @@ WebSocketSrv.prototype.start = function (io) {
 
             }
             catch (err) {
+                callback(err.message ? err.message : err);
                 logger.error(err);
             }
         });
