@@ -23,6 +23,8 @@ Copyright (C) 2016 The Streembit software development team
 
 var streembit = streembit || {};
 
+var config = require('./config');
+
 var privatekey_password;
 
 try {
@@ -35,9 +37,12 @@ catch (err) {
 }
 
 if (!privatekey_password) {
-    //  try to get the current directory
-    console.log("The private key password -pksecret command line parameter is required!");
-    process.exit(1);
+    privatekey_password = config.password;
+    if (!privatekey_password) {
+        //  try to get the current directory
+        console.log("The private key password -pksecret command line parameter or config.password field is required!");
+        process.exit(1);
+    }
 }
 
 // use the nodejs crypto library
@@ -59,7 +64,6 @@ var levelup = require('levelup');
 var async = require('async');
 var util = require('util');
 var assert = require('assert');
-var config = require('./config');
 var wotkad = require('streembitlib/kadlib');
 var websocketsrv = require('./wssrvc').WebSocketSrv;
 streembit.account = require("./account");
