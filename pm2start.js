@@ -24,7 +24,6 @@ var async = require("async");
 var pm2 = require('pm2');
 var config = require('./config');
 
-
 var homedir;
 
 try {
@@ -51,15 +50,11 @@ pm2.connect(function (err) {
     }
     
     var cwd_value = homedir;
-    var node_config_dir_value = homedir + "/config";
-    
+
     var pm2config = {
         name    : "streembit",
         script  : 'streembit.js',         
-        cwd     : cwd_value,
-        env: {
-            "NODE_CONFIG_DIR": node_config_dir_value
-        }
+        cwd     : cwd_value
     };
     
     pm2.start(
