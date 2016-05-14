@@ -97,6 +97,17 @@ Alternatively, start streembitseed as a background/service process using the pm2
 ```bash
 $ node pm2start.js 
 ```
+
+Verify the application has started
+```bash
+$ pm2 list
+```
+
+Check the application logs
+```bash
+$ pm2 logs
+```
+
 (For more information about pm2 please refer to the pm2 library)
 
 
