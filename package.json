@@ -1,6 +1,6 @@
 {
   "name": "streembitseed",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Streembit seed node",
   "main": "streembit.js",
   "author": {

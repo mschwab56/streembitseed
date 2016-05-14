@@ -385,9 +385,10 @@ streembit.PeerNet = (function (peerobj, logger, events) {
             
             wotkad.create(options, function (err, peer) {
                 if (err) {
-                    return callback(err);
+                    logger.error("peernet start error: %j", err);
                 }
                 
+                // still set the objects so the very first node on the network is still operational
                 peerobj.db = streembitdb;
                 peerobj.node = peer;
                 callback();
