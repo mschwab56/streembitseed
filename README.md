@@ -82,9 +82,9 @@ Enter the values to the configuration settings fileds. The configuration fields 
 
 "private_network":  please refer to the private network documention for more information about the Streembit private networks.
 
-"homedir": Enter the current directory. PM2 background process that start from boot requires set the working directory.
+"homedir": Enter the current directory. PM2 background process that start from boot requires to define the working directory.
 
-"password": the private key entropy of the seed. The PPKI key pair is generated using this settings.
+"password": the private key entropy of the seed. The PPKI key pair is generated using this setting.
 
 
 Run streembitseed:  
