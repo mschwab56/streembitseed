@@ -139,7 +139,7 @@ async.waterfall([
     },
     function (callback) {
         logger.info("public key: %s", streembit.account.public_key);
-        streembit.bootclient.discovery(config.node.address, config.node.seeds[0], callback);
+        streembit.bootclient.discovery(config.node.address, config.node.seeds, callback);
     },
     function (address, callback) {
         if (!address) {
@@ -154,30 +154,6 @@ async.waterfall([
         config.node.seeds = seeds;   
         var maindb = levelup(maindb_path);
         streembit.peernet.start(maindb, callback);
-    },
-    function (callback) {
-        var count = 0;
-        logger.debug("bucket info");       
-        var buckets = streembit.peernet.get_buckets();
-        if (buckets) {
-            for (var prop in buckets) {
-                var bucket = buckets[prop];
-                if (bucket._contacts) {
-                    for (var i = 0; i < bucket._contacts.length; i++) {
-                        logger.debug("bucket contact: %j", bucket._contacts[i]);
-                        count++;   
-                    }
-                }
-            }
-        }
-        
-        if (config.node.seeds && config.node.seeds.length && !count) {
-            // if seeds are defined then contacts mustr exists in the bucket
-            callback("no contacts exist in the bucket");
-        }
-        else {
-            callback();
-        }
     },
     function (callback) {
         if (config.wsserver) {
