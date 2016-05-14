@@ -24,76 +24,80 @@ Install the Node.js dependencies:
 $ npm install
 ```
 
+Create a config.json file to provide configuration settings/
+```bash
+$ nano config.json
+```
 
-Set the config/default.json configuration file.
-
-The account name must be unique on the network. Please change the default "your_account_name" value otherwise the software won't be able to connect to the network. If the account name is not defined the application will use the address:port hash (SHA1) for account name.
-
-address: enter the IP address of the server in which the streembitseed application is executed. 
-
-Seeds: array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemio.co.
-
-discoverysrvc: implements the discovery service. The discovery service has an important role in the Streembit network to assist in propogating information about the nodes.
-
-Log settings: define the level of log.
-
-wsserver: whether start a WebSocket listener or not. WebSocket listener serves Streembit clients which unable to open a TCP port and use the WebSocket fallback.
-
-Private network: please refer to the private network documention for more information about the Streembit private networks.
+Copy the following JSON data structure to the file.
 
 ```json
 {
-    "node": {
-        "account": "your_account_name",
-        "address": "your_server_ip_address",
-        "port": 32320,
-        "seeds": [
-		{
-            "account": "seed.streemio.org",
-            "address": "seed.streemio.org",
-            "port": 32320
-        },
-		{
-            "account": "seed.streemio.net",
-            "address": "seed.streemio.net",
-            "port": 32320
-        },            
-        {
-            "account": "seed.streemio.biz",
-            "address": "seed.streemio.biz",
-            "port": 32320
-        },
-		{
-            "account": "seed.streemio.co",
-            "address": "seed.streemio.co",
-            "port": 32320
-        }]
-    },
-    "log": {
-        "level": "debug"
-    },
-    "discoverysrvc": true,
-    "wsserver": true,
-    "private_network": false,
-    "private_network_accounts": []
+	"node": {
+		"address": "your_ip_address",
+		"port": "the_port_streembit_uses",
+		"seeds": [
+			{
+				"address": "seed.streemio.net",
+				"port": 32320,
+				"public_key": "033d92278f9440c8b4061dddf862f5e224d0ff312e642edfa2c93c86671442609f"
+			},
+			{
+				"address": "seed.streemio.biz",
+				"port": 32320,
+				"public_key": "026f2303d7932ed86bf21b7150bcd45024f3926d37b615798855994b6b53e8b81b"
+			},
+			{
+				"address": "seed.streemo.uk",
+				"port": 32320,
+				"public_key": "035f4881a0c7d50af6fcf7cc40c3eab60c382bf7f8cd83cd2a3ff5064afd893c70"
+			},
+			{ 
+				"address": "seed.streemio.co", 
+				"port": 32320, 
+				"public_key": "037fb797e8bf14aefba94ea5efafccebfe1b4591567625a68a9f68ef53a02b9306" 
+			}
+		]
+	},
+	"log": {
+		"level": "debug"
+	},
+	"wsserver": true,
+	"private_network": false,
+	"private_network_accounts": [],
+	"homedir":  "the_curent_directory",
+	"password":  "your_private_key_password"
 }
 ```
 
+Enter the values to the configuration settings fileds. The configuration fields are:
+
+"address": your computer IPv4 IP address. Enter the IP address of the server in which the streembitseed application is executed.
+
+"port": Enter the port number whcih configured in the firewalland can listen on incoming Streembit requests.
+
+"seeds": array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemo.uk. Please see above the public keys for these seeds.
+
+"wsserver":  whether start a WebSocket listener or not. WebSocket listener serves Streembit clients which unable to open a TCP port and use the WebSocket fallback. Set it for true if you want to help the network to serv WS request for users who are unable to connect via TCP (due to NAT or firewall issues).
+
+"private_network":  please refer to the private network documention for more information about the Streembit private networks.
+
+"homedir": Enter the current directory. PM2 background process that start from boot requires set the working directory.
+
+"password": the private key entropy of the seed. The PPKI key pair is generated using this settings.
+
+
 Run streembitseed:  
 ```bash
-$ node streembit.js
+$ node streembit.js -pksecret your_password
 ```
-
 
 Alternatively, start streembitseed as a background/service process using the pm2 library.
 
-You must pass the working directory of streembitseed to the pm2 application via the command line arguments. The command line argument is "-homedir", the directory name must follow this argument identifier.
-
 ```bash
-$ node pm2start.js -- -homedir /to/path/sreembitseed
+$ node pm2start.js 
 ```
 (For more information about pm2 please refer to the pm2 library)
-
 
 
 Development Process
