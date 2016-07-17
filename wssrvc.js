@@ -201,13 +201,18 @@ WebSocketSrv.prototype.start = function (io) {
                 }                
                 
                 wotkad.find_contact(streembit.peernet.node, account, public_key, function (err, contact) {
-                    if (!err && contact && contact.account == account) {
+                    if (err) {
+                        var errmsg = err.message ? err.message : err;
+                        return callback(errmsg, null);
+                    }
+
+                    if (contact && contact.account == account) {
                         contact.protocol = "tcp";
                         contact.name = account;
                         callback(null, contact);
                     }
                     else {
-                        callback(err.message ? err.message : err, null);
+                        callback(null);
                     }
                 });
             }
