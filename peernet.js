@@ -235,6 +235,8 @@ streembit.PeerNet = (function (peerobj, logger, events) {
                 logger.debug("delete message with type DELMSG, key: %s", data.key);
                 return callback(true);
             }
+
+            logger.debug("expireHandler data: %j", data);
             
             var currtime = Date.now();
             var expiry_time = 0;
