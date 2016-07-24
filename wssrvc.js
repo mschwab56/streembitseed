@@ -87,6 +87,16 @@ WebSocketSrv.prototype.start = function (io) {
                 logger.error(err);
             }
         });
+
+        socket.on("ping", function (request, callback) {
+            try {
+                logger.debug("ws ping from: " + client);
+                callback(null, 1);
+            }
+            catch (err) {
+                logger.error(err);
+            }
+        });
         
         socket.on("put", function (request, callback) {
             try {
