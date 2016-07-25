@@ -198,6 +198,8 @@ streembit.PeerNet = (function (peerobj, logger, events) {
     
     function expireHandler(data, callback) {
         try {
+            logger.debug("expireHandler 1");
+
             if (!data || !data.key || !data.value) {
                 logger.debug("delete invalid message");
                 return callback(true);
@@ -208,7 +210,9 @@ streembit.PeerNet = (function (peerobj, logger, events) {
                 // invalid data
                 return callback(true);
             }
-            
+
+            logger.debug("expireHandler 2");
+
             // get the payload
             var payload = wotmsg.getpayload(msgobj.value);
             
@@ -224,6 +228,8 @@ streembit.PeerNet = (function (peerobj, logger, events) {
                 // return, no delete
                 return callback();
             }
+
+            logger.debug("expireHandler 3");
             
             if (!msgobj.timestamp) {
                 logger.debug("delete message without timestamp, key: %s", data.key);
