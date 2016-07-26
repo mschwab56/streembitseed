@@ -31,6 +31,8 @@ var wotmsg = require('streembitlib/message/wotmsg');
 streembit.account = require("./account");
 
 var DEFAULT_STREEMBIT_PORT = 32320;
+var T_MSG_EXPIRE = 259200 * 1000;  // 72 hours of message expiry
+var T_ITEM_EXPIRE = 86460 * 1000; // 24 hours of item expiry
 
 
 streembit.PeerNet = (function (peerobj, logger, events) {
@@ -248,10 +250,10 @@ streembit.PeerNet = (function (peerobj, logger, events) {
             var expiry_time = 0;
             var keyitems = data.key.split("/");
             if (keyitems && keyitems.length > 2 && keyitems[1] == "message") {
-                expiry_time = value.timestamp + T_MSG_EXPIRE;
+                expiry_time = msgobj.timestamp + T_MSG_EXPIRE;
             }
             else {
-                expiry_time = value.timestamp + T_ITEM_EXPIRE;
+                expiry_time = msgobj.timestamp + T_ITEM_EXPIRE;
             }
             
             if (expiry_time <= currtime) {
