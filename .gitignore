@@ -49,5 +49,5 @@ logs/*.log
 /.vs/config/applicationhost.config
 
 config.json
-config.json
 /typings
+/.idea/

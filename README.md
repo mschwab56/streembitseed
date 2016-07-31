@@ -35,7 +35,7 @@ Copy the following JSON data structure to the file.
 {
 	"node": {
 		"address": "your_ip_address",
-		"port": "the_port_streembit_uses",
+		"port": the_port_number_streembit_uses,
 		"seeds": [
 			{
 				"address": "seed.streemio.net",
@@ -74,7 +74,7 @@ Enter the values to the configuration settings fileds. The configuration fields 
 
 "address": your computer IPv4 IP address. Enter the IP address of the server in which the streembitseed application is executed.
 
-"port": Enter the port number whcih configured in the firewalland can listen on incoming Streembit requests.
+"port": Enter the port number which is configured in the firewall and can listen on incoming Streembit requests. Make sure it is formatted as number, not as string!
 
 "seeds": array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemo.uk. Please see above the public keys for these seeds.
 
