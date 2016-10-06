@@ -2,7 +2,7 @@
 
 streembitseed is the console version of the Streembit Core software. The streembitseed application runs a seed node for the Streembit network.
 
-streembitseed is a wrapper to use the streembitlib project at https://github.com/streembit/streembitlib (see package.json for dependency information)
+streembitseed is a wrapper to use the streembitlib project at https://github.com/streembit/streembitlib (see package.json for dependency information).
 
 
 Building and running streembitseed
@@ -65,22 +65,22 @@ Copy the following JSON data structure to the file.
 	"wsserver": true,
 	"private_network": false,
 	"private_network_accounts": [],
-	"homedir":  "the_curent_directory",
+	"homedir":  "the_current_directory",
 	"password":  "your_private_key_password"
 }
 ```
 
-Enter the values to the configuration settings fileds. The configuration fields are:
+Enter the values to the configuration settings fields. The configuration fields are:
 
 "address": your computer IPv4 IP address. Enter the IP address of the server in which the streembitseed application is executed.
 
 "port": Enter the port number which is configured in the firewall and can listen on incoming Streembit requests. Make sure it is formatted as number, not as string!
 
-"seeds": array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemo.uk. Please see above the public keys for these seeds.
+"seeds": Array of seed nodes. Default is seed.streemio.org, seed.streemio.net, seed.streemio.biz and seed.streemo.uk. Please see above the public keys for these seeds.
 
-"wsserver":  whether start a WebSocket listener or not. WebSocket listener serves Streembit clients which unable to open a TCP port and use the WebSocket fallback. Set it for true if you want to help the network to serv WS request for users who are unable to connect via TCP (due to NAT or firewall issues).
+"wsserver":  Whether or not to start a WebSocket listener. WebSocket listeners serve Streembit clients that are unable to open a TCP port and use the WebSocket fallback. Set it to true if you want to help the network serve WS requests from users who are unable to connect via TCP (due to NAT or firewall issues).
 
-"private_network":  please refer to the private network documention for more information about the Streembit private networks.
+"private_network":  Please refer to the private network documention for more information about the Streembit private networks.
 
 "homedir": Enter the current directory. PM2 background process that start from boot requires to define the working directory.
 
